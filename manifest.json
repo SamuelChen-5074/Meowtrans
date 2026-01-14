@@ -27,8 +27,8 @@
   "commands": {
     "translate": {
       "suggested_key": {
-        "default": "Ctrl+Q",
-        "mac": "Command+Q"
+        "default": "Ctrl+T",
+        "mac": "Command+T"
       },
       "description": "翻译选中的文本"
     }
