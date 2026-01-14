@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试 popup.js</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .result {
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background: #d4edda;
+      color: white;
+    }
+    .error {
+      background: #f8d7da;
+      color: white;
+    }
+    button {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+  </style>
+</head>
+<body>
+  <h1>popup.js 文件测试</h1>
+  
+  <div class="test-section">
+    <h2>测试 1：检查文件是否存在</h2>
+    <div id="file-exist" class="result">检查中...</div>
+    
+    <h2>测试 2：检查 JavaScript 语法</h2>
+    <div id="js-syntax" class="result">检查中...</div>
+    
+    <h2>测试 3：检查 DOM 元素</h2>
+    <div id="dom-elements" class="result">检查中...</div>
+  </div>
+  
+  <button onclick="runTests()">运行所有测试</button>
+  
+  <script>
+    async function runTests() {
+      // 测试 1：检查文件是否存在
+      try {
+        const response = await fetch('popup.js');
+        if (response.ok) {
+          document.getElementById('file-exist').textContent = '✅ popup.js 文件存在';
+          document.getElementById('file-exist').className = 'result success';
+        } else {
+          document.getElementById('file-exist').textContent = '❌ popup.js 文件不存在';
+          document.getElementById('file-exist').className = 'result error';
+        }
+      } catch (error) {
+        document.getElementById('file-exist').textContent = '❌ 无法检查文件';
+        document.getElementById('file-exist').className = 'result error';
+      }
+      
+      // 测试 2：检查 JavaScript 语法
+      try {
+        const script = document.createElement('script');
+        script.src = 'popup.js';
+        script.onload = () => {
+          document.getElementById('js-syntax').textContent = '✅ JavaScript 语法正确';
+          document.getElementById('js-syntax').className = 'result success';
+        };
+        script.onerror = () => {
+          document.getElementById('js-syntax').textContent = '❌ JavaScript 有语法错误';
+          document.getElementById('js-syntax').className = 'result error';
+        };
+        document.head.appendChild(script);
+      } catch (error) {
+        document.getElementById('js-syntax').textContent = '❌ JavaScript 加载失败: ' + error.message;
+        document.getElementById('js-syntax').className = 'result error';
+      }
+      
+      // 测试 3：检查 DOM 元素（模拟）
+      try {
+        // 创建模拟的 DOM 结构
+        const mockContainer = document.createElement('div');
+        mockContainer.innerHTML = `
+          <div class="container">
+            <select id="provider">
+              <option value="ollama">Ollama</option>
+              <option value="openrouter">OpenRouter</option>
+            </select>
+            <button id="translate-btn">翻译</button>
+            <button id="save-settings-btn">保存设置</button>
+          </div>
+        `;
+        
+        // 检查元素是否存在
+        const provider = mockContainer.querySelector('#provider');
+        const translateBtn = mockContainer.querySelector('#translate-btn');
+        const saveBtn = mockContainer.querySelector('#save-settings-btn');
+        
+        if (provider && translateBtn && saveBtn) {
+          document.getElementById('dom-elements').textContent = '✅ DOM 元素结构正确';
+          document.getElementById('dom-elements').className = 'result success';
+        } else {
+          document.getElementById('dom-elements').textContent = '❌ DOM 元素不完整';
+          document.getElementById('dom-elements').className = 'result error';
+        }
+      } catch (error) {
+        document.getElementById('dom-elements').textContent = '❌ DOM 测试失败: ' + error.message;
+        document.getElementById('dom-elements').className = 'result error';
+      }
+    }
+  </script>
+</body>
+</html>

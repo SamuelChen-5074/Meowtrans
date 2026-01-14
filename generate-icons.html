@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成图标</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .icon-preview {
+      display: flex;
+      justify-content: space-around;
+      margin: 30px 0;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .icon-item {
+      text-align: center;
+    }
+    .icon-item canvas {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .icon-item label {
+      display: block;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: transform 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .instructions {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border-left: 4px solid #667eea;
+    }
+    .instructions h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .instructions ol {
+      margin: 15px 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+    .download-all {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .download-all button {
+      padding: 15px 40px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ollama 翻译插件 - 图标生成器</h1>
+    
+    <div class="icon-preview">
+      <div class="icon-item">
+        <label>16x16 像素</label>
+        <canvas id="icon16" width="16" height="16"></canvas>
+        <button class="btn" onclick="downloadIcon('icon16', 'icon16.png')">下载</button>
+      </div>
+      
+      <div class="icon-item">
+        <label>48x48 像素</label>
+        <canvas id="icon48" width="48" height="48"></canvas>
+        <button class="btn" onclick="downloadIcon('icon48', 'icon48.png')">下载</button>
+      </div>
+      
+      <div class="icon-item">
+        <label>128x128 像素</label>
+        <canvas id="icon128" width="128" height="128"></canvas>
+        <button class="btn" onclick="downloadIcon('icon128', 'icon128.png')">下载</button>
+      </div>
+    </div>
+    
+    <div class="download-all">
+      <button class="btn" onclick="downloadAllIcons()">下载所有图标</button>
+    </div>
+    
+    <div class="instructions">
+      <h2>使用说明</h2>
+      <ol>
+        <li>点击每个图标下方的"下载"按钮，或点击"下载所有图标"按钮</li>
+        <li>将下载的图标文件保存到项目的 <code>icons</code> 文件夹中</li>
+        <li>确保文件名分别为：<code>icon16.png</code>、<code>icon48.png</code>、<code>icon128.png</code></li>
+        <li>在 Chrome 扩展页面重新加载插件</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // 绘制图标的函数
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      
+      // 创建渐变背景
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+      
+      // 绘制圆角矩形背景
+      const radius = size * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(size - radius, 0);
+      ctx.quadraticCurveTo(size, 0, size, radius);
+      ctx.lineTo(size, size - radius);
+      ctx.quadraticCurveTo(size, size, size - radius, size);
+      ctx.lineTo(radius, size);
+      ctx.quadraticCurveTo(0, size, 0, size - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // 绘制翻译图标（两个气泡）
+      const bubbleSize = size * 0.25;
+      const bubbleSpacing = size * 0.1;
+      
+      // 左上气泡（原文）
+      const bubble1X = size * 0.25;
+      const bubble1Y = size * 0.35;
+      ctx.beginPath();
+      ctx.arc(bubble1X, bubble1Y, bubbleSize, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fill();
+      
+      // 右下气泡（译文）
+      const bubble2X = size * 0.75;
+      const bubble2Y = size * 0.65;
+      ctx.beginPath();
+      ctx.arc(bubble2X, bubble2Y, bubbleSize, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fill();
+      
+      // 绘制箭头
+      const arrowSize = size * 0.08;
+      ctx.beginPath();
+      ctx.moveTo(bubble1X + bubbleSize * 0.7, bubble1Y + bubbleSize * 0.7);
+      ctx.lineTo(bubble2X - bubbleSize * 0.7, bubble2Y - bubbleSize * 0.7);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = size * 0.04;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      
+      // 箭头头部
+      const angle = Math.atan2(
+        bubble2Y - bubbleSize * 0.7 - (bubble1Y + bubbleSize * 0.7),
+        bubble2X - bubbleSize * 0.7 - (bubble1X + bubbleSize * 0.7)
+      );
+      ctx.beginPath();
+      ctx.moveTo(bubble2X - bubbleSize * 0.7, bubble2Y - bubbleSize * 0.7);
+      ctx.lineTo(
+        bubble2X - bubbleSize * 0.7 - arrowSize * Math.cos(angle - Math.PI / 6),
+        bubble2Y - bubbleSize * 0.7 - arrowSize * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.moveTo(bubble2X - bubbleSize * 0.7, bubble2Y - bubbleSize * 0.7);
+      ctx.lineTo(
+        bubble2X - bubbleSize * 0.7 - arrowSize * Math.cos(angle + Math.PI / 6),
+        bubble2Y - bubbleSize * 0.7 - arrowSize * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+      
+      // 在气泡中添加文字（只在大图标上显示）
+      if (size >= 48) {
+        ctx.fillStyle = '#667eea';
+        ctx.font = `bold ${size * 0.12}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('A', bubble1X, bubble1Y);
+        ctx.fillText('文', bubble2X, bubble2Y);
+      }
+    }
+    
+    // 下载图标
+    function downloadIcon(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    
+    // 下载所有图标
+    function downloadAllIcons() {
+      setTimeout(() => downloadIcon('icon16', 'icon16.png'), 0);
+      setTimeout(() => downloadIcon('icon48', 'icon48.png'), 200);
+      setTimeout(() => downloadIcon('icon128', 'icon128.png'), 400);
+    }
+    
+    // 页面加载时绘制所有图标
+    window.onload = function() {
+      drawIcon('icon16', 16);
+      drawIcon('icon48', 48);
+      drawIcon('icon128', 128);
+    };
+  </script>
+</body>
+</html>

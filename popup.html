@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ollama 网页翻译</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Ollama 网页翻译</h1>
+    </div>
+    
+    <div class="settings-section">
+      <div class="setting-item">
+        <label for="provider">API 供应商：</label>
+        <select id="provider">
+          <option value="ollama">Ollama (本地)</option>
+          <option value="openrouter">OpenRouter (云端)</option>
+        </select>
+      </div>
+
+      <!-- Ollama 配置 -->
+      <div id="ollama-settings" class="provider-settings">
+        <div class="setting-item">
+          <label for="ollama-url">Ollama 服务地址：</label>
+          <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+        </div>
+        
+        <div class="setting-item">
+          <label for="model-name">模型名称：</label>
+          <input type="text" id="model-name" value="qwen2:7b" placeholder="例如: qwen2:7b">
+        </div>
+      </div>
+
+      <!-- OpenRouter 配置 -->
+      <div id="openrouter-settings" class="provider-settings" style="display: none;">
+        <div class="setting-item">
+          <label for="openrouter-api-key">OpenRouter API Key：</label>
+          <input type="password" id="openrouter-api-key" placeholder="sk-or-..." autocomplete="off">
+        </div>
+        
+        <div class="setting-item">
+          <label for="openrouter-model">OpenRouter 模型：</label>
+          <input type="text" id="openrouter-model" value="anthropic/claude-3-haiku" placeholder="例如: anthropic/claude-3-haiku">
+        </div>
+
+        <div class="setting-item">
+          <label for="openrouter-site-url">站点 URL（可选）：</label>
+          <input type="text" id="openrouter-site-url" placeholder="https://your-site.com">
+        </div>
+
+        <div class="setting-item">
+          <label for="openrouter-app-name">应用名称（可选）：</label>
+          <input type="text" id="openrouter-app-name" placeholder="Ollama 翻译插件">
+        </div>
+      </div>
+      
+      <div class="setting-item">
+        <label for="target-lang">目标语言：</label>
+        <select id="target-lang">
+          <option value="中文">中文</option>
+          <option value="English">English</option>
+          <option value="日本語">日本語</option>
+          <option value="한국어">한국어</option>
+          <option value="Français">Français</option>
+          <option value="Deutsch">Deutsch</option>
+          <option value="Español">Español</option>
+        </select>
+      </div>
+      
+      <div class="setting-item">
+        <label for="translate-mode">翻译模式：</label>
+        <select id="translate-mode">
+          <option value="selected">选中文字</option>
+          <option value="page">整个页面</option>
+          <option value="hover">悬停翻译</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button id="translate-btn" class="btn primary">翻译</button>
+      <button id="save-settings-btn" class="btn secondary">保存设置</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    
+    <div class="info-section">
+      <p class="info-text">
+        <strong>使用说明：</strong><br>
+        1. 选择API供应商（Ollama本地服务或OpenRouter云端服务）<br>
+        2. 配置相应的API参数（Ollama需要本地运行，OpenRouter需要API Key）<br>
+        3. 选择翻译模式后点击"翻译"按钮
+      </p>
+      <p class="info-text" style="margin-top: 10px;">
+        <strong>OpenRouter 说明：</strong><br>
+        - 获取API Key: 访问 <a href="https://openrouter.ai/keys" target="_blank">https://openrouter.ai/keys</a><br>
+        - 支持多种模型: Claude、GPT、Llama等<br>
+        - 按使用量付费，无需本地部署
+      </p>
+    </div>
+  </div>
+  
+  <!-- 内联测试脚本 -->
+  <script>
+    console.log('========================================');
+    console.log('popup.html 内联脚本开始执行');
+    console.log('========================================');
+    
+    // 测试DOM元素
+    const providerSelect = document.getElementById('provider');
+    const translateBtn = document.getElementById('translate-btn');
+    
+    if (providerSelect && translateBtn) {
+      console.log('✅ 内联脚本：DOM元素存在');
+      console.log('- providerSelect:', providerSelect);
+      console.log('- translateBtn:', translateBtn);
+    } else {
+      console.log('❌ 内联脚本：DOM元素不存在');
+    }
+    
+    console.log('内联脚本执行完成');
+    console.log('========================================');
+  </script>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
