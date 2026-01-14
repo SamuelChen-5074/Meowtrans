@@ -2,75 +2,19 @@
 const TRANSLATED_ATTR = 'data-ollama-translated';
 const ORIGINAL_ATTR = 'data-ollama-original';
 
-// 调用Ollama API进行翻译
-async function translateWithOllama(text, settings) {
-  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
-  
-  const response = await fetch(`${settings.ollamaUrl}/api/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: settings.modelName,
-      prompt: prompt,
-      stream: false
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Ollama API 错误: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  return data.response.trim();
-}
-
-// 调用OpenRouter API进行翻译
-async function translateWithOpenRouter(text, settings) {
-  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
-  
-  // 对包含非 ASCII 字符的 header 值进行编码
-  const appName = settings.openrouterAppName || 'Ollama Translation Extension';
-  const encodedAppName = encodeURIComponent(appName);
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${settings.openrouterApiKey}`,
-    'HTTP-Referer': settings.openrouterSiteUrl || 'https://localhost',
-    'X-Title': encodedAppName
-  };
-  
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({
-      model: settings.openrouterModel,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]
-    })
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`OpenRouter API 错误: ${errorData.error?.message || response.status}`);
-  }
-  
-  const data = await response.json();
-  return data.choices[0].message.content.trim();
-}
-
-// 根据供应商调用相应的翻译API
+// 通过background script调用翻译API，避免CORS问题
 async function translateWithProvider(text, settings) {
-  if (settings.provider === 'openrouter') {
-    return await translateWithOpenRouter(text, settings);
-  } else {
-    return await translateWithOllama(text, settings);
+  const response = await chrome.runtime.sendMessage({
+    action: 'translateText',
+    text: text,
+    settings: settings
+  });
+  
+  if (!response.success) {
+    throw new Error(response.error || '翻译失败');
   }
+  
+  return response.translatedText;
 }
 
 // 翻译选中的文本

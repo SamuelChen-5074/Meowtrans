@@ -127,13 +127,124 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   }
 });
 
-// 监听来自content script的消息
+// 调用Ollama API进行翻译
+async function translateWithOllama(text, settings) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+  
+  const response = await fetch(`${settings.ollamaUrl}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: settings.modelName,
+      prompt: prompt,
+      stream: false
+    })
+  });
+  
+  if (!response.ok) {
+    let errorMessage = `Ollama API 错误: ${response.status}`;
+    if (response.status === 404) {
+      errorMessage += ` - 模型 "${settings.modelName}" 不存在或 Ollama 服务未运行。请检查 Ollama 服务是否在 ${settings.ollamaUrl} 上运行，并确保模型已下载。`;
+    } else if (response.status === 500) {
+      errorMessage += ` - Ollama 服务内部错误。请检查 Ollama 服务状态。`;
+    }
+    throw new Error(errorMessage);
+  }
+  
+  const data = await response.json();
+  return data.response.trim();
+}
+
+// 调用OpenRouter API进行翻译
+async function translateWithOpenRouter(text, settings) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+  
+  // 对包含非 ASCII 字符的 header 值进行编码
+  const appName = settings.openrouterAppName || 'Ollama Translation Extension';
+  const encodedAppName = encodeURIComponent(appName);
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${settings.openrouterApiKey}`,
+    'HTTP-Referer': settings.openrouterSiteUrl || 'https://localhost',
+    'X-Title': encodedAppName
+  };
+  
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: settings.openrouterModel,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    })
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`OpenRouter API 错误: ${errorData.error?.message || response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.choices[0].message.content.trim();
+}
+
+// 监听来自content script和popup的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'createContextMenu') {
     createContextMenu();
     sendResponse({ success: true });
+  } else if (request.action === 'translateText') {
+    // 在background script中处理翻译请求，避免CORS问题
+    handleTranslateText(request.text, request.settings)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // 保持消息通道开放
+  } else if (request.action === 'testOllamaConnection') {
+    // 测试Ollama连接
+    handleTestOllamaConnection(request.ollamaUrl)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
   }
 });
+
+// 处理翻译文本请求
+async function handleTranslateText(text, settings) {
+  try {
+    if (settings.provider === 'openrouter') {
+      const translatedText = await translateWithOpenRouter(text, settings);
+      return { success: true, translatedText };
+    } else {
+      const translatedText = await translateWithOllama(text, settings);
+      return { success: true, translatedText };
+    }
+  } catch (error) {
+    console.error('翻译错误:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// 测试Ollama连接
+async function handleTestOllamaConnection(ollamaUrl) {
+  try {
+    const response = await fetch(`${ollamaUrl}/api/tags`);
+    if (!response.ok) {
+      throw new Error('连接失败');
+    }
+    const data = await response.json();
+    return { success: true, models: data.models };
+  } catch (error) {
+    console.error('Ollama连接测试失败:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 // 插件图标点击事件（可选）
 chrome.action.onClicked.addListener((tab) => {

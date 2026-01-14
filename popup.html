@@ -61,6 +61,7 @@
         <label for="target-lang">目标语言：</label>
         <select id="target-lang">
           <option value="中文">中文</option>
+          <option value="粤语">粤语</option>
           <option value="English">English</option>
           <option value="日本語">日本語</option>
           <option value="한국어">한국어</option>
@@ -102,28 +103,6 @@
       </p>
     </div>
   </div>
-  
-  <!-- 内联测试脚本 -->
-  <script>
-    console.log('========================================');
-    console.log('popup.html 内联脚本开始执行');
-    console.log('========================================');
-    
-    // 测试DOM元素
-    const providerSelect = document.getElementById('provider');
-    const translateBtn = document.getElementById('translate-btn');
-    
-    if (providerSelect && translateBtn) {
-      console.log('✅ 内联脚本：DOM元素存在');
-      console.log('- providerSelect:', providerSelect);
-      console.log('- translateBtn:', translateBtn);
-    } else {
-      console.log('❌ 内联脚本：DOM元素不存在');
-    }
-    
-    console.log('内联脚本执行完成');
-    console.log('========================================');
-  </script>
   
   <script src="popup.js"></script>
 </body>
