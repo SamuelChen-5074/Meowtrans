@@ -217,11 +217,14 @@ const openaiApiKeyInput = document.getElementById('openai-api-key');
 const openaiModelInput = document.getElementById('openai-model');
 const openaiBaseUrlInput = document.getElementById('openai-base-url');
 const openaiOrganizationInput = document.getElementById('openai-organization');
-const targetLangSelect = document.getElementById('target-lang');
-const translateModeSelect = document.getElementById('translate-mode');
-const translateBtn = document.getElementById('translate-btn');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const statusDiv = document.getElementById('status');
+
+// 页面翻译页面的DOM元素
+const targetLangSelectPt = document.getElementById('target-lang-pt');
+const translateModeSelectPt = document.getElementById('translate-mode-pt');
+const translateBtnPt = document.getElementById('translate-btn-pt');
+const statusDivPt = document.getElementById('status-pt');
 
 const ollamaSettingsDiv = document.getElementById('ollama-settings');
 const openrouterSettingsDiv = document.getElementById('openrouter-settings');
@@ -239,9 +242,7 @@ const defaultSettings = {
   openaiApiKey: '',
   openaiModel: 'gpt-3.5-turbo',
   openaiBaseUrl: 'https://api.openai.com/v1',
-  openaiOrganization: '',
-  targetLang: '中文',
-  translateMode: 'selected'
+  openaiOrganization: ''
 };
 
 // 加载保存的设置
@@ -260,8 +261,10 @@ async function loadSettings() {
   openaiModelInput.value = settings.openaiModel || 'gpt-3.5-turbo';
   openaiBaseUrlInput.value = settings.openaiBaseUrl || 'https://api.openai.com/v1';
   openaiOrganizationInput.value = settings.openaiOrganization || '';
-  targetLangSelect.value = settings.targetLang;
-  translateModeSelect.value = settings.translateMode;
+  
+  // 设置页面翻译tab的值
+  targetLangSelectPt.value = settings.targetLang;
+  translateModeSelectPt.value = settings.translateMode;
   
   // 切换显示相应的设置面板
   toggleProviderSettings(settings.provider);
@@ -298,12 +301,16 @@ async function saveSettings() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
-    targetLang: targetLangSelect.value,
-    translateMode: translateModeSelect.value
+    targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的值
+    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的值
   };
   
   await chrome.storage.local.set({ translateSettings: settings });
   showStatus('设置已保存', 'success');
+  
+  // 同步更新页面翻译tab的值（以防万一）
+  targetLangSelectPt.value = settings.targetLang;
+  translateModeSelectPt.value = settings.translateMode;
 }
 
 // 显示状态信息
@@ -314,6 +321,17 @@ function showStatus(message, type = 'info') {
   setTimeout(() => {
     statusDiv.textContent = '';
     statusDiv.className = 'status';
+  }, 3000);
+}
+
+// 显示页面翻译状态信息
+function showStatusPt(message, type = 'info') {
+  statusDivPt.textContent = message;
+  statusDivPt.className = `status show ${type}`;
+  
+  setTimeout(() => {
+    statusDivPt.textContent = '';
+    statusDivPt.className = 'status';
   }, 3000);
 }
 
@@ -332,10 +350,11 @@ async function translateWithProvider(text, settings) {
   return response.translatedText;
 }
 
-// 执行翻译
+// 执行翻译 - 从页面翻译tab获取设置
 async function executeTranslate() {
   console.log('开始翻译...');
   
+  // 从页面翻译tab获取设置
   const settings = {
     provider: providerSelect.value,
     ollamaUrl: ollamaUrlInput.value.trim(),
@@ -348,8 +367,8 @@ async function executeTranslate() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
-    targetLang: targetLangSelect.value,
-    translateMode: translateModeSelect.value
+    targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
+    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
   };
   
   console.log('翻译设置:', settings);
@@ -402,6 +421,77 @@ async function executeTranslate() {
   }
 }
 
+// 执行页面翻译
+async function executePageTranslate() {
+  console.log('开始页面翻译...');
+  
+  // 从页面翻译tab获取设置
+  const settings = {
+    provider: providerSelect.value,
+    ollamaUrl: ollamaUrlInput.value.trim(),
+    modelName: modelNameInput.value.trim(),
+    openrouterApiKey: openrouterApiKeyInput.value.trim(),
+    openrouterModel: openrouterModelInput.value.trim(),
+    openrouterSiteUrl: openrouterSiteUrlInput.value.trim(),
+    openrouterAppName: openrouterAppNameInput.value.trim(),
+    openaiApiKey: openaiApiKeyInput.value.trim(),
+    openaiModel: openaiModelInput.value.trim(),
+    openaiBaseUrl: openaiBaseUrlInput.value.trim(),
+    openaiOrganization: openaiOrganizationInput.value.trim(),
+    targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
+    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
+  };
+  
+  console.log('页面翻译设置:', settings);
+  
+  // 验证配置
+  if (settings.provider === 'openrouter' && !settings.openrouterApiKey) {
+    showStatusPt('请输入 OpenRouter API Key', 'error');
+    return;
+  }
+  
+  if (settings.provider === 'openai' && !settings.openaiApiKey) {
+    showStatusPt('请输入 OpenAI API Key', 'error');
+    return;
+  }
+  
+  showStatusPt('正在翻译...', 'info');
+  
+  try {
+    // 获取当前标签页
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab) {
+      throw new Error('无法获取当前标签页');
+    }
+    
+    console.log('发送消息到标签页:', tab.id);
+    
+    // 向content script发送消息
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      action: 'translate',
+      settings: settings
+    });
+    
+    console.log('收到响应:', response);
+    
+    if (response.success) {
+      showStatusPt('翻译完成', 'success');
+    } else {
+      throw new Error(response.error || '翻译失败');
+    }
+  } catch (error) {
+    console.error('页面翻译错误:', error);
+    
+    // 如果是"Receiving end does not exist"错误，提示用户刷新页面
+    if (error.message.includes('Receiving end does not exist')) {
+      showStatusPt('错误: 请刷新当前页面后再试', 'error');
+    } else {
+      showStatusPt(`错误: ${error.message}`, 'error');
+    }
+  }
+}
+
 // 测试Ollama连接（通过background script避免CORS问题）
 async function testOllamaConnection() {
   const ollamaUrl = ollamaUrlInput.value.trim();
@@ -428,12 +518,24 @@ saveSettingsBtn.addEventListener('click', () => {
   saveSettings();
 });
 
-translateBtn.addEventListener('click', () => {
-  console.log('翻译按钮被点击');
+// 当页面翻译tab的目标语言或翻译模式改变时，同步更新存储的设置
+targetLangSelectPt.addEventListener('change', () => {
+  // 可以选择性地更新全局设置
+});
+
+translateModeSelectPt.addEventListener('change', () => {
+  // 可以选择性地更新全局设置
+});
+
+
+
+// 页面翻译按钮事件监听
+translateBtnPt.addEventListener('click', () => {
+  console.log('页面翻译按钮被点击');
   // 立即关闭sidepanel
   closeSidePanel();
-  // 然后执行翻译
-  executeTranslate();
+  // 然后执行页面翻译
+  executePageTranslate();
 });
 
 // 关闭sidepanel的函数
@@ -516,11 +618,11 @@ function calculatePageHeights() {
     
     // 计算各页面的实际可用高度（减去顶部和底部UI元素的高度）
     const headerHeight = 60; // 顶部导航高度
-    const inputAreaHeight = 120; // 输入区域高度
+    const inputAreaHeight = 120; // 输入区域高度（对于非聊天页面可能不需要）
     const statusBarHeight = 40; // 状态栏高度
     const padding = 20; // 总内边距
     
-    const availableHeight = windowHeight - headerHeight - inputAreaHeight - statusBarHeight - padding;
+    const availableHeight = windowHeight - headerHeight - statusBarHeight - padding;
     
     // 应用动态高度到各个页面内容区
     const pageContents = document.querySelectorAll('.page-content');
@@ -528,7 +630,7 @@ function calculatePageHeights() {
       page.style.height = `${availableHeight}px`;
     });
     
-    // 特别处理聊天消息区域
+    // 特别处理聊天消息区域（仅聊天页面需要）
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
       chatMessages.style.maxHeight = `${availableHeight - 80}px`; // 额外减去其他元素占用的空间
