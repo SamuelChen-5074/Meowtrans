@@ -485,65 +485,95 @@
       }
     }
 
-    /* 帮助中心页面优化样式 */
+    /* 帮助中心页面优化样式 - 现代化设计 */
     #page-help {
-      height: 880px;
+      height: 100%;
       overflow: hidden;
+      background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+      display: flex;
+      flex-direction: column;
     }
 
     #page-help .header {
       flex-shrink: 0;
-      padding: 16px 16px 0 16px;
-      margin-bottom: 12px;
+      padding: 24px 20px 16px 20px;
+      background: linear-gradient(135deg, rgba(74, 144, 226, 0.05) 0%, rgba(53, 122, 189, 0.05) 100%);
+      border-bottom: 1px solid rgba(74, 144, 226, 0.1);
+      margin-bottom: 0;
+      position: relative;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #page-help .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary-gradient-start), transparent);
     }
 
     #page-help .header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--secondary-gradient-end) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin: 0;
-      padding: 8px 0;
+      padding: 0;
+      letter-spacing: -0.5px;
+      position: relative;
+    }
+
+    #page-help .header h1::before {
+      content: '📚';
+      margin-right: 12px;
+      -webkit-text-fill-color: initial;
+      font-size: 24px;
     }
 
     .help-scroll-container {
       flex: 1;
       overflow-y: auto;
-      padding: 0 16px 16px 16px;
+      padding: 20px;
+      scroll-behavior: smooth;
     }
 
     .help-scroll-container::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
 
     .help-scroll-container::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 3px;
     }
 
     .help-scroll-container::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
+      background: linear-gradient(180deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+      border-radius: 3px;
     }
 
     .help-scroll-container::-webkit-scrollbar-thumb:hover {
-      background: #a1a1a1;
+      background: linear-gradient(180deg, var(--primary-gradient-end) 0%, var(--secondary-gradient-start) 100%);
     }
 
     .help-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .help-card {
       background: white;
-      border-radius: var(--radius-md);
-      padding: 20px;
-      box-shadow: var(--shadow-md);
-      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.06);
       transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
@@ -555,102 +585,313 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 3px;
+      height: 4px;
       background: linear-gradient(90deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
       opacity: 0;
       transition: opacity var(--transition-normal) ease;
     }
 
+    .help-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition-normal) ease;
+      pointer-events: none;
+    }
+
     .help-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.18);
-      border-color: var(--primary-gradient-start);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(74, 144, 226, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: rgba(74, 144, 226, 0.3);
     }
 
     .help-card:hover::before {
       opacity: 1;
     }
 
+    .help-card:hover::after {
+      opacity: 1;
+    }
+
     .help-card-title {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      font-size: 16px;
-      font-weight: 600;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 700;
       color: var(--text-primary);
+      position: relative;
+      z-index: 1;
     }
 
     .help-card-title svg {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       fill: var(--primary-gradient-start);
+      filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.2));
     }
 
     .help-card-content {
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 14px;
+      line-height: 1.8;
       color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+    }
+
+    .help-card-content p {
+      margin-bottom: 12px;
     }
 
     .help-card-content ul {
-      margin: 8px 0;
-      padding-left: 20px;
+      margin: 12px 0;
+      padding-left: 24px;
     }
 
     .help-card-content li {
-      margin-bottom: 6px;
+      margin-bottom: 10px;
+      padding-left: 8px;
+      position: relative;
+    }
+
+    .help-card-content li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--primary-gradient-start);
+      font-weight: bold;
     }
 
     .help-card-content a {
       color: var(--primary-gradient-start);
       text-decoration: none;
-      font-weight: 500;
-      transition: color var(--transition-fast) ease;
+      font-weight: 600;
+      transition: all var(--transition-fast) ease;
+      border-bottom: 1px solid transparent;
     }
 
     .help-card-content a:hover {
       color: var(--primary-gradient-end);
-      text-decoration: underline;
+      border-bottom-color: var(--primary-gradient-end);
     }
 
     .help-card-content strong {
       color: var(--text-primary);
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    .provider-card {
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    /* 快速开始卡片 - 主色调 */
+    .help-card:nth-child(1) {
+      background: linear-gradient(135deg, rgba(74, 144, 226, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
     }
 
-    .provider-card .help-card-title svg {
+    .help-card:nth-child(1) .help-card-title svg {
+      fill: var(--primary-gradient-start);
+    }
+
+    .help-card:nth-child(1):hover {
+      box-shadow: 0 12px 40px rgba(74, 144, 226, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: var(--primary-gradient-start);
+    }
+
+    /* 使用说明卡片 - 次要色调 */
+    .help-card:nth-child(2) {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
+    }
+
+    .help-card:nth-child(2) .help-card-title svg {
+      fill: var(--secondary-gradient-start);
+    }
+
+    .help-card:nth-child(2):hover {
+      box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: var(--secondary-gradient-start);
+    }
+
+    .help-card:nth-child(2)::before {
+      background: linear-gradient(90deg, var(--secondary-gradient-start) 0%, var(--secondary-gradient-end) 100%);
+    }
+
+    /* OpenRouter 卡片 - 橙色调 */
+    .help-card:nth-child(3) {
+      background: linear-gradient(135deg, rgba(230, 126, 34, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
+    }
+
+    .help-card:nth-child(3) .help-card-title svg {
       fill: #e67e22;
     }
 
-    .provider-card:hover {
-      box-shadow: 0 6px 20px rgba(230, 126, 34, 0.18);
+    .help-card:nth-child(3):hover {
+      box-shadow: 0 12px 40px rgba(230, 126, 34, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
       border-color: #e67e22;
     }
 
-    .provider-card::before {
+    .help-card:nth-child(3)::before {
       background: linear-gradient(90deg, #e67e22 0%, #d35400 100%);
     }
 
-    .faq-card {
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    /* OpenAI 卡片 - 绿色调 */
+    .help-card:nth-child(4) {
+      background: linear-gradient(135deg, rgba(39, 174, 96, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
     }
 
-    .faq-card .help-card-title svg {
+    .help-card:nth-child(4) .help-card-title svg {
       fill: #27ae60;
     }
 
-    .faq-card:hover {
-      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.18);
+    .help-card:nth-child(4):hover {
+      box-shadow: 0 12px 40px rgba(39, 174, 96, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
       border-color: #27ae60;
     }
 
-    .faq-card::before {
+    .help-card:nth-child(4)::before {
       background: linear-gradient(90deg, #27ae60 0%, #219a52 100%);
+    }
+
+    /* 常见问题卡片 - 紫色调 */
+    .help-card:nth-child(5) {
+      background: linear-gradient(135deg, rgba(155, 89, 182, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
+    }
+
+    .help-card:nth-child(5) .help-card-title svg {
+      fill: #9b59b6;
+    }
+
+    .help-card:nth-child(5):hover {
+      box-shadow: 0 12px 40px rgba(155, 89, 182, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: #9b59b6;
+    }
+
+    .help-card:nth-child(5)::before {
+      background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+    }
+
+    /* 卡片入场动画 */
+    @keyframes cardFadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .help-card {
+      animation: cardFadeInUp 0.5s ease-out backwards;
+    }
+
+    .help-card:nth-child(1) { animation-delay: 0.1s; }
+    .help-card:nth-child(2) { animation-delay: 0.2s; }
+    .help-card:nth-child(3) { animation-delay: 0.3s; }
+    .help-card:nth-child(4) { animation-delay: 0.4s; }
+    .help-card:nth-child(5) { animation-delay: 0.5s; }
+
+    /* 响应式优化 */
+    @media (max-width: 600px) {
+      #page-help .header {
+        padding: 20px 16px 12px 16px;
+      }
+
+      #page-help .header h1 {
+        font-size: 22px;
+      }
+
+      #page-help .header h1::before {
+        font-size: 20px;
+        margin-right: 8px;
+      }
+
+      .help-scroll-container {
+        padding: 16px;
+      }
+
+      .help-card {
+        padding: 18px;
+        border-radius: var(--radius-md);
+      }
+
+      .help-card-title {
+        font-size: 16px;
+        gap: 10px;
+      }
+
+      .help-card-title svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .help-card-content {
+        font-size: 13px;
+      }
+    }
+
+    /* 添加搜索框样式 */
+    .help-search {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .help-search input {
+      width: 100%;
+      padding: 14px 20px 14px 48px;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      transition: all var(--transition-normal) ease;
+    }
+
+    .help-search input:focus {
+      outline: none;
+      border-color: var(--primary-gradient-start);
+      box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+    }
+
+    .help-search svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    /* 添加标签样式 */
+    .help-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .help-tag {
+      padding: 4px 12px;
+      background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.05) 100%);
+      border: 1px solid rgba(74, 144, 226, 0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--primary-gradient-start);
+      cursor: pointer;
+      transition: all var(--transition-fast) ease;
+    }
+
+    .help-tag:hover {
+      background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(74, 144, 226, 0.2);
     }
   </style>
 </head>
@@ -835,6 +1076,14 @@
             <h1>帮助中心</h1>
           </div>
           <div class="help-scroll-container">
+            <!-- 搜索框 -->
+            <div class="help-search">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+              <input type="text" placeholder="搜索帮助内容..." id="help-search-input">
+            </div>
+
             <div class="help-content">
             <!-- 快速开始卡片 -->
             <div class="help-card">
@@ -851,6 +1100,11 @@
                   <li>选择翻译模式（选中文字/整个页面/悬停翻译）</li>
                   <li>点击翻译按钮开始翻译</li>
                 </ul>
+                <div class="help-tags">
+                  <span class="help-tag">新手入门</span>
+                  <span class="help-tag">快速配置</span>
+                  <span class="help-tag">3步上手</span>
+                </div>
               </div>
             </div>
 
@@ -870,6 +1124,10 @@
                   <li><strong>OpenAI官方/兼容</strong>：需要API Key，支持OpenAI兼容接口</li>
                 </ul>
                 <p>配置完成后，选择目标语言和翻译模式即可开始翻译。</p>
+                <div class="help-tags">
+                  <span class="help-tag">API配置</span>
+                  <span class="help-tag">供应商选择</span>
+                </div>
               </div>
             </div>
 
@@ -889,6 +1147,10 @@
                   <li>按使用量付费，无需本地部署</li>
                   <li>提供统一的API接口，方便集成</li>
                 </ul>
+                <div class="help-tags">
+                  <span class="help-tag">云端服务</span>
+                  <span class="help-tag">多模型支持</span>
+                </div>
               </div>
             </div>
 
@@ -908,6 +1170,10 @@
                   <li>支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）</li>
                   <li>自定义API基础URL可连接任何OpenAI兼容的服务</li>
                 </ul>
+                <div class="help-tags">
+                  <span class="help-tag">官方服务</span>
+                  <span class="help-tag">兼容接口</span>
+                </div>
               </div>
             </div>
 
@@ -927,6 +1193,10 @@
                   <li><strong>翻译速度慢</strong>：检查网络连接，或尝试切换到其他API供应商</li>
                   <li><strong>翻译结果不准确</strong>：尝试更换不同的模型或调整目标语言设置</li>
                 </ul>
+                <div class="help-tags">
+                  <span class="help-tag">故障排查</span>
+                  <span class="help-tag">问题解答</span>
+                </div>
               </div>
             </div>
           </div>

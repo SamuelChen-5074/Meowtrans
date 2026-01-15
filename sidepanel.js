@@ -450,10 +450,64 @@ async function closeSidePanel() {
   }
 }
 
+// 帮助中心搜索功能
+function initHelpSearch() {
+  const searchInput = document.getElementById('help-search-input');
+  const helpCards = document.querySelectorAll('.help-card');
+  const helpTags = document.querySelectorAll('.help-tag');
+  
+  if (!searchInput) return;
+  
+  // 搜索功能
+  searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase().trim();
+    
+    helpCards.forEach(card => {
+      const title = card.querySelector('.help-card-title').textContent.toLowerCase();
+      const content = card.querySelector('.help-card-content').textContent.toLowerCase();
+      const tags = Array.from(card.querySelectorAll('.help-tag')).map(tag => tag.textContent.toLowerCase());
+      
+      const matchesTitle = title.includes(searchTerm);
+      const matchesContent = content.includes(searchTerm);
+      const matchesTags = tags.some(tag => tag.includes(searchTerm));
+      
+      if (searchTerm === '' || matchesTitle || matchesContent || matchesTags) {
+        card.style.display = 'block';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      } else {
+        card.style.display = 'none';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+      }
+    });
+  });
+  
+  // 标签点击功能
+  helpTags.forEach(tag => {
+    tag.addEventListener('click', () => {
+      const tagText = tag.textContent;
+      searchInput.value = tagText;
+      
+      // 触发搜索事件
+      searchInput.dispatchEvent(new Event('input'));
+      
+      // 滚动到第一个匹配的卡片
+      setTimeout(() => {
+        const firstVisibleCard = Array.from(helpCards).find(card => card.style.display !== 'none');
+        if (firstVisibleCard) {
+          firstVisibleCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    });
+  });
+}
+
 // 初始化
 console.log('sidepanel.js 加载完成，开始初始化...');
 initTabNavigation();
 loadSettings();
+initHelpSearch();
 
 // 动态计算页面高度
 function calculatePageHeights() {
