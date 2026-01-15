@@ -242,7 +242,9 @@ const defaultSettings = {
   openaiApiKey: '',
   openaiModel: 'gpt-3.5-turbo',
   openaiBaseUrl: 'https://api.openai.com/v1',
-  openaiOrganization: ''
+  openaiOrganization: '',
+  targetLang: '中文',
+  translateMode: 'selected'
 };
 
 // 加载保存的设置
@@ -518,14 +520,37 @@ saveSettingsBtn.addEventListener('click', () => {
   saveSettings();
 });
 
-// 当页面翻译tab的目标语言或翻译模式改变时，同步更新存储的设置
+// 当页面翻译tab的目标语言或翻译模式改变时，立即保存设置
 targetLangSelectPt.addEventListener('change', () => {
-  // 可以选择性地更新全局设置
+  // 保存当前设置到存储
+  saveCurrentSettings();
 });
 
 translateModeSelectPt.addEventListener('change', () => {
-  // 可以选择性地更新全局设置
+  // 保存当前设置到存储
+  saveCurrentSettings();
 });
+
+// 保存当前设置的辅助函数
+async function saveCurrentSettings() {
+  const settings = {
+    provider: providerSelect.value,
+    ollamaUrl: ollamaUrlInput.value.trim(),
+    modelName: modelNameInput.value.trim(),
+    openrouterApiKey: openrouterApiKeyInput.value.trim(),
+    openrouterModel: openrouterModelInput.value.trim(),
+    openrouterSiteUrl: openrouterSiteUrlInput.value.trim(),
+    openrouterAppName: openrouterAppNameInput.value.trim(),
+    openaiApiKey: openaiApiKeyInput.value.trim(),
+    openaiModel: openaiModelInput.value.trim(),
+    openaiBaseUrl: openaiBaseUrlInput.value.trim(),
+    openaiOrganization: openaiOrganizationInput.value.trim(),
+    targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
+    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
+  };
+  
+  await chrome.storage.local.set({ translateSettings: settings });
+}
 
 
 
