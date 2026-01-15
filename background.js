@@ -54,6 +54,10 @@ async function translateSelection(tab) {
       openrouterModel: 'anthropic/claude-3-haiku',
       openrouterSiteUrl: '',
       openrouterAppName: 'Ollama 翻译插件',
+      openaiApiKey: '',
+      openaiModel: 'gpt-3.5-turbo',
+      openaiBaseUrl: 'https://api.openai.com/v1',
+      openaiOrganization: '',
       targetLang: '中文',
       translateMode: 'selected'
     };
@@ -86,6 +90,10 @@ async function translatePage(tab) {
       openrouterModel: 'anthropic/claude-3-haiku',
       openrouterSiteUrl: '',
       openrouterAppName: 'Ollama 翻译插件',
+      openaiApiKey: '',
+      openaiModel: 'gpt-3.5-turbo',
+      openaiBaseUrl: 'https://api.openai.com/v1',
+      openaiOrganization: '',
       targetLang: '中文',
       translateMode: 'page'
     };
@@ -195,6 +203,58 @@ async function translateWithOpenRouter(text, settings) {
   return data.choices[0].message.content.trim();
 }
 
+// 调用OpenAI API进行翻译
+async function translateWithOpenAI(text, settings) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+  
+  // 获取API基础URL，默认为OpenAI官方API
+  const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
+  const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}chat/completions` : `${baseUrl}/chat/completions`;
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${settings.openaiApiKey}`
+  };
+  
+  const requestBody = {
+    model: settings.openaiModel || 'gpt-3.5-turbo',
+    messages: [
+      {
+        role: 'user',
+        content: prompt
+      }
+    ]
+  };
+  
+  // 如果设置了organization ID，添加到请求头
+  if (settings.openaiOrganization) {
+    headers['OpenAI-Organization'] = settings.openaiOrganization;
+  }
+  
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(requestBody)
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMessage = `OpenAI API 错误: ${response.status}`;
+    
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage += ` - ${errorData.error?.message || errorData.message || '未知错误'}`;
+    } catch (e) {
+      errorMessage += ` - ${errorText}`;
+    }
+    
+    throw new Error(errorMessage);
+  }
+  
+  const data = await response.json();
+  return data.choices[0].message.content.trim();
+}
+
 // 监听来自content script和popup的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'createContextMenu') {
@@ -221,6 +281,9 @@ async function handleTranslateText(text, settings) {
     if (settings.provider === 'openrouter') {
       const translatedText = await translateWithOpenRouter(text, settings);
       return { success: true, translatedText };
+    } else if (settings.provider === 'openai') {
+      const translatedText = await translateWithOpenAI(text, settings);
+      return { success: true, translatedText };
     } else {
       const translatedText = await translateWithOllama(text, settings);
       return { success: true, translatedText };
@@ -246,10 +309,10 @@ async function handleTestOllamaConnection(ollamaUrl) {
   }
 }
 
-// 插件图标点击事件（可选）
-chrome.action.onClicked.addListener((tab) => {
-  // 如果需要点击图标直接执行某些操作，可以在这里添加
-  // 当前配置使用popup，所以这个事件不会被触发
+// 插件图标点击事件 - 打开 Side Panel
+chrome.action.onClicked.addListener(async (tab) => {
+  // 打开 Side Panel
+  await chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
 // 监听标签页更新

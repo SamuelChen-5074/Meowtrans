@@ -5,6 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ollama 网页翻译</title>
   <link rel="stylesheet" href="popup.css">
+  <style>
+    /* 侧边栏特定样式 */
+    body {
+      min-width: 300px;
+      max-width: 100%;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .container {
+      min-height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .header h1 {
+      font-size: 18px;
+    }
+
+    .setting-item {
+      margin-bottom: 12px;
+    }
+
+    .setting-item label {
+      font-size: 12px;
+    }
+
+    .setting-item input[type="text"],
+    .setting-item select {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    .info-section {
+      padding: 12px;
+    }
+
+    .info-text {
+      font-size: 11px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -135,6 +181,6 @@
     </div>
   </div>
   
-  <script src="popup.js"></script>
+  <script src="sidepanel.js"></script>
 </body>
 </html>

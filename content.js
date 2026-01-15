@@ -220,9 +220,39 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// 翻译整个页面
+// 批量翻译文本
+async function translateBatch(texts, settings) {
+  if (texts.length === 0) return [];
+  
+  // 将多个文本合并成一个请求
+  const prompt = `请将以下文本逐行翻译成${settings.targetLang}，每行对应一个翻译结果，只返回翻译结果，不要添加任何解释：\n\n` +
+    texts.map((text, index) => `${index + 1}. ${text}`).join('\n');
+  
+  const response = await chrome.runtime.sendMessage({
+    action: 'translateText',
+    text: prompt,
+    settings: settings
+  });
+  
+  if (!response.success) {
+    throw new Error(response.error || '批量翻译失败');
+  }
+  
+  // 解析批量翻译结果
+  const translatedLines = response.translatedText
+    .split('\n')
+    .map(line => line.replace(/^\d+\.\s*/, '').trim())
+    .filter(line => line.length > 0);
+  
+  return translatedLines;
+}
+
+// 翻译整个页面（优化版：批量+并发）
 async function translatePage(settings) {
   try {
+    // 先恢复原文，确保每次翻译都是基于原文进行
+    restoreOriginalText();
+
     // 获取所有文本节点
     const textNodes = getTextNodes(document.body);
     
@@ -230,10 +260,8 @@ async function translatePage(settings) {
       return { success: false, error: '页面没有可翻译的文本' };
     }
     
-    let translatedCount = 0;
-    let failedCount = 0;
-    
-    // 分批翻译文本节点
+    // 过滤并准备待翻译的节点
+    const nodesToTranslate = [];
     for (const node of textNodes) {
       const text = node.textContent.trim();
       
@@ -247,19 +275,71 @@ async function translatePage(settings) {
         continue;
       }
       
-      try {
-        const translatedText = await translateWithProvider(text, settings);
+      nodesToTranslate.push({ node, text });
+    }
+    
+    if (nodesToTranslate.length === 0) {
+      return { success: false, error: '没有需要翻译的文本' };
+    }
+    
+    let translatedCount = 0;
+    let failedCount = 0;
+    const batchSize = 5; // 每批翻译5个文本
+    const concurrency = 10; // 并发处理10个批次
+    
+    // 分批处理
+    const batches = [];
+    for (let i = 0; i < nodesToTranslate.length; i += batchSize) {
+      batches.push(nodesToTranslate.slice(i, i + batchSize));
+    }
+    
+    // 并发处理批次
+    for (let i = 0; i < batches.length; i += concurrency) {
+      const concurrentBatches = batches.slice(i, i + concurrency);
+      
+      const results = await Promise.allSettled(
+        concurrentBatches.map(batch => {
+          const texts = batch.map(item => item.text);
+          return translateBatch(texts, settings);
+        })
+      );
+      
+      // 处理每个批次的结果
+      for (let j = 0; j < concurrentBatches.length; j++) {
+        const batch = concurrentBatches[j];
+        const result = results[j];
         
-        // 保存原文并替换为译文
-        const parent = node.parentElement;
-        parent.setAttribute(ORIGINAL_ATTR, text);
-        parent.setAttribute(TRANSLATED_ATTR, 'true');
-        node.textContent = translatedText;
-        
-        translatedCount++;
-      } catch (error) {
-        console.error('翻译节点失败:', error);
-        failedCount++;
+        if (result.status === 'fulfilled') {
+          const translatedTexts = result.value;
+          
+          for (let k = 0; k < batch.length; k++) {
+            const { node, text } = batch[k];
+            const translatedText = translatedTexts[k] || text;
+            
+            try {
+              // 检查节点是否仍然存在且有效
+              if (!node || !node.parentElement) {
+                console.warn('节点已被移除，跳过翻译');
+                failedCount++;
+                continue;
+              }
+              
+              // 保存原文并替换为译文
+              const parent = node.parentElement;
+              parent.setAttribute(ORIGINAL_ATTR, text);
+              parent.setAttribute(TRANSLATED_ATTR, 'true');
+              node.textContent = translatedText;
+              
+              translatedCount++;
+            } catch (error) {
+              console.error('应用翻译失败:', error);
+              failedCount++;
+            }
+          }
+        } else {
+          console.error('批次翻译失败:', result.reason);
+          failedCount += batch.length;
+        }
       }
     }
     

@@ -1,7 +1,4 @@
-// 立即执行的测试日志
-console.log('========================================');
-console.log('popup.js 开始执行 - 这条日志应该立即显示');
-console.log('========================================');
+// Side Panel 特定逻辑 - 复用 popup.js 的功能
 
 // 获取DOM元素
 const providerSelect = document.getElementById('provider');
@@ -107,7 +104,7 @@ async function saveSettings() {
 // 显示状态信息
 function showStatus(message, type = 'info') {
   statusDiv.textContent = message;
-  statusDiv.className = `status ${type}`;
+  statusDiv.className = `status show ${type}`;
   
   setTimeout(() => {
     statusDiv.textContent = '';
@@ -228,11 +225,28 @@ saveSettingsBtn.addEventListener('click', () => {
 
 translateBtn.addEventListener('click', () => {
   console.log('翻译按钮被点击');
+  // 立即关闭sidepanel
+  closeSidePanel();
+  // 然后执行翻译
   executeTranslate();
 });
 
+// 关闭sidepanel的函数
+async function closeSidePanel() {
+  try {
+    // 获取当前窗口ID
+    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (currentTab && currentTab.windowId) {
+      // 关闭当前窗口的sidepanel
+      await chrome.sidePanel.close({ windowId: currentTab.windowId });
+    }
+  } catch (error) {
+    console.error('关闭sidepanel失败:', error);
+  }
+}
+
 // 初始化
-console.log('popup.js 加载完成，开始初始化...');
+console.log('sidepanel.js 加载完成，开始初始化...');
 loadSettings();
 
 // 检查Ollama连接状态
