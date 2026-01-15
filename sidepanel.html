@@ -121,16 +121,19 @@
       display: none;
     }
 
-    .page-content.active {
-      display: block;
-    }
-
-    /* 聊天页面样式 */
-    #page-chat {
-      padding: 5px;
+    /* 聊天页面激活状态 */
+    #page-chat.active {
       display: flex;
       flex-direction: column;
       height: 100%;
+      padding: 5px;
+    }
+
+    /* 其他页面激活状态 */
+    #page-settings.active,
+    #page-history.active,
+    #page-help.active {
+      display: block;
     }
 
     .chat-messages {
