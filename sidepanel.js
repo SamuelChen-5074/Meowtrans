@@ -455,6 +455,44 @@ console.log('sidepanel.js 加载完成，开始初始化...');
 initTabNavigation();
 loadSettings();
 
+// 动态计算页面高度
+function calculatePageHeights() {
+    // 获取浏览器窗口高度
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    
+    // 计算各页面的实际可用高度（减去顶部和底部UI元素的高度）
+    const headerHeight = 60; // 顶部导航高度
+    const inputAreaHeight = 120; // 输入区域高度
+    const statusBarHeight = 40; // 状态栏高度
+    const padding = 20; // 总内边距
+    
+    const availableHeight = windowHeight - headerHeight - inputAreaHeight - statusBarHeight - padding;
+    
+    // 应用动态高度到各个页面内容区
+    const pageContents = document.querySelectorAll('.page-content');
+    pageContents.forEach(page => {
+      page.style.height = `${availableHeight}px`;
+    });
+    
+    // 特别处理聊天消息区域
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+      chatMessages.style.maxHeight = `${availableHeight - 80}px`; // 额外减去其他元素占用的空间
+    }
+    
+    // 处理帮助页面滚动容器
+    const helpScrollContainer = document.querySelector('.help-scroll-container');
+    if (helpScrollContainer) {
+      helpScrollContainer.style.height = `${availableHeight - 60}px`;
+    }
+  }
+
+// 页面加载完成后计算一次高度
+window.addEventListener('load', calculatePageHeights);
+
+// 监听窗口大小变化，动态调整高度
+window.addEventListener('resize', calculatePageHeights);
+
 // 检查Ollama连接状态
 async function checkConnection() {
   const result = await testOllamaConnection();
