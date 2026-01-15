@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ollama 网页翻译</title>
+  <title>AI Translate</title>
   <link rel="stylesheet" href="popup.css">
   <style>
     /* 侧边栏特定样式 */
@@ -25,78 +26,53 @@
 
     /* 左侧导航栏 */
     .sidebar {
-      width: 60px;
-      min-width: 60px;
-      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+      width: 48px;
+      min-width: 48px;
+      background: #e0e0e0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 0;
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      padding: 10px 0;
+      border-right: 1px solid #d0d0d0;
     }
 
     /* Tab项 */
     .tab-item {
-      width: 44px;
-      height: 44px;
-      margin-bottom: 8px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.15);
+      width: 36px;
+      height: 36px;
+      margin-bottom: 6px;
+      border-radius: 4px;
+      background: transparent;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
       position: relative;
     }
 
     .tab-item:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: scale(1.05);
+      background: #d0d0d0;
     }
 
     .tab-item.active {
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: #4a90e2;
     }
 
     .tab-item.active svg {
-      fill: #667eea;
+      fill: white;
     }
 
     .tab-item svg {
-      width: 24px;
-      height: 24px;
-      fill: rgba(255, 255, 255, 0.9);
-      transition: fill 0.2s ease;
-    }
-
-    /* Tab提示 */
-    .tab-item::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 56px;
-      background: #333;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      z-index: 100;
-    }
-
-    .tab-item:hover::after {
-      opacity: 1;
+      width: 20px;
+      height: 20px;
+      fill: #666;
     }
 
     /* 右侧内容区域 */
     .content-area {
       flex: 1;
-      overflow-y: auto;
+      overflow-y: hidden;
       background: #f5f7fa;
     }
 
@@ -104,7 +80,7 @@
       min-height: 100%;
       border-radius: 0;
       box-shadow: none;
-      padding: 16px;
+      padding: 5px;
       background: white;
     }
 
@@ -150,73 +126,76 @@
     }
 
     /* 聊天页面样式 */
+    #page-chat {
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
-      min-height: 300px;
-      max-height: 400px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      margin-bottom: 12px;
+      padding: 7px 5px;
+      min-height: 739px;
+      max-height: calc(100vh - 250px);
+      border-radius: 4px;
+      margin-bottom: 5px;
+      width: 100%;
     }
 
     .chat-message {
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      max-width: 85%;
+      margin-bottom: 16px;
+      padding: 14px 18px;
+      border-radius: 4px;
+      max-width: 95%;
       word-wrap: break-word;
     }
 
     .chat-message.user {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #4a90e2;
       color: white;
       margin-left: auto;
-      border-bottom-right-radius: 4px;
     }
 
     .chat-message.system {
       background: #e9ecef;
       color: #495057;
       margin-right: auto;
-      border-bottom-left-radius: 4px;
     }
 
     .chat-message .message-content {
-      font-size: 13px;
-      line-height: 1.5;
-      white-space: pre-wrap;
+      font-size: 14px;
     }
 
     .chat-input-area {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
+      width: 100%;
     }
 
     #chat-input {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 12px 14px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-size: 14px;
       font-family: inherit;
       resize: vertical;
-      min-height: 60px;
-      max-height: 120px;
-      transition: border-color 0.2s ease;
+      min-height: 80px;
+      max-height: 150px;
     }
 
     #chat-input:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: #4a90e2;
     }
 
     .chat-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      width: 100%;
     }
 
     .chat-actions .btn {
@@ -228,28 +207,33 @@
     }
   </style>
 </head>
+
 <body>
   <div class="main-container">
     <!-- 左侧导航栏 -->
     <div class="sidebar">
-      <button class="tab-item active" data-tab="chat" data-tooltip="聊天">
+      <button class="tab-item active" data-tab="chat">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+          <path
+            d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
         </svg>
       </button>
-      <button class="tab-item" data-tab="settings" data-tooltip="设置">
+      <button class="tab-item" data-tab="settings">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          <path
+            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
         </svg>
       </button>
-      <button class="tab-item" data-tab="history" data-tooltip="历史">
+      <button class="tab-item" data-tab="history">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          <path
+            d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
         </svg>
       </button>
-      <button class="tab-item" data-tab="help" data-tooltip="帮助">
+      <button class="tab-item" data-tab="help">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
         </svg>
       </button>
     </div>
@@ -259,10 +243,6 @@
       <div class="container">
         <!-- 聊天页面 -->
         <div id="page-chat" class="page-content active">
-          <div class="header">
-            <h1>翻译聊天</h1>
-          </div>
-
           <!-- 聊天消息区域 -->
           <div id="chat-messages" class="chat-messages">
             <div class="chat-message system">
@@ -288,130 +268,133 @@
         <!-- 设置页面 -->
         <div id="page-settings" class="page-content">
           <div class="header">
-            <h1>Ollama 网页翻译</h1>
+            <h1>AI Translate</h1>
           </div>
-    
-    <div class="settings-section">
-      <div class="setting-item">
-        <label for="provider">API 供应商：</label>
-        <select id="provider">
-          <option value="ollama">Ollama (本地)</option>
-          <option value="openrouter">OpenRouter (云端)</option>
-          <option value="openai">OpenAI (官方/兼容)</option>
-        </select>
-      </div>
 
-      <!-- Ollama 配置 -->
-      <div id="ollama-settings" class="provider-settings">
-        <div class="setting-item">
-          <label for="ollama-url">Ollama 服务地址：</label>
-          <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
-        </div>
-        
-        <div class="setting-item">
-          <label for="model-name">模型名称：</label>
-          <input type="text" id="model-name" value="qwen2:7b" placeholder="例如: qwen2:7b">
-        </div>
-      </div>
+          <div class="settings-section">
+            <div class="setting-item">
+              <label for="provider">API 供应商：</label>
+              <select id="provider">
+                <option value="ollama">Ollama (本地)</option>
+                <option value="openrouter">OpenRouter (云端)</option>
+                <option value="openai">OpenAI (官方/兼容)</option>
+              </select>
+            </div>
 
-      <!-- OpenRouter 配置 -->
-      <div id="openrouter-settings" class="provider-settings" style="display: none;">
-        <div class="setting-item">
-          <label for="openrouter-api-key">OpenRouter API Key：</label>
-          <input type="password" id="openrouter-api-key" placeholder="sk-or-..." autocomplete="off">
-        </div>
-        
-        <div class="setting-item">
-          <label for="openrouter-model">OpenRouter 模型：</label>
-          <input type="text" id="openrouter-model" value="anthropic/claude-3-haiku" placeholder="例如: anthropic/claude-3-haiku">
-        </div>
+            <!-- Ollama 配置 -->
+            <div id="ollama-settings" class="provider-settings">
+              <div class="setting-item">
+                <label for="ollama-url">Ollama 服务地址：</label>
+                <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+              </div>
 
-        <div class="setting-item">
-          <label for="openrouter-site-url">站点 URL（可选）：</label>
-          <input type="text" id="openrouter-site-url" placeholder="https://your-site.com">
-        </div>
+              <div class="setting-item">
+                <label for="model-name">模型名称：</label>
+                <input type="text" id="model-name" value="qwen2:7b" placeholder="例如: qwen2:7b">
+              </div>
+            </div>
 
-        <div class="setting-item">
-          <label for="openrouter-app-name">应用名称（可选）：</label>
-          <input type="text" id="openrouter-app-name" placeholder="Ollama 翻译插件">
-        </div>
-      </div>
+            <!-- OpenRouter 配置 -->
+            <div id="openrouter-settings" class="provider-settings" style="display: none;">
+              <div class="setting-item">
+                <label for="openrouter-api-key">OpenRouter API Key：</label>
+                <input type="password" id="openrouter-api-key" placeholder="sk-or-..." autocomplete="off">
+              </div>
 
-      <!-- OpenAI 配置 -->
-      <div id="openai-settings" class="provider-settings" style="display: none;">
-        <div class="setting-item">
-          <label for="openai-api-key">OpenAI API Key：</label>
-          <input type="password" id="openai-api-key" placeholder="sk-..." autocomplete="off">
-        </div>
-        
-        <div class="setting-item">
-          <label for="openai-model">OpenAI 模型：</label>
-          <input type="text" id="openai-model" value="gpt-3.5-turbo" placeholder="例如: gpt-3.5-turbo, gpt-4">
-        </div>
+              <div class="setting-item">
+                <label for="openrouter-model">OpenRouter 模型：</label>
+                <input type="text" id="openrouter-model" value="anthropic/claude-3-haiku"
+                  placeholder="例如: anthropic/claude-3-haiku">
+              </div>
 
-        <div class="setting-item">
-          <label for="openai-base-url">API 基础 URL（可选）：</label>
-          <input type="text" id="openai-base-url" value="https://api.openai.com/v1" placeholder="例如: https://api.openai.com/v1">
-        </div>
+              <div class="setting-item">
+                <label for="openrouter-site-url">站点 URL（可选）：</label>
+                <input type="text" id="openrouter-site-url" placeholder="https://your-site.com">
+              </div>
 
-        <div class="setting-item">
-          <label for="openai-organization">组织 ID（可选）：</label>
-          <input type="text" id="openai-organization" placeholder="例如: org-...">
-        </div>
-      </div>
-      
-      <div class="setting-item">
-        <label for="target-lang">目标语言：</label>
-        <select id="target-lang">
-          <option value="中文">中文</option>
-          <option value="粤语">粤语</option>
-          <option value="English">English</option>
-          <option value="日本語">日本語</option>
-          <option value="한국어">한국어</option>
-          <option value="Français">Français</option>
-          <option value="Deutsch">Deutsch</option>
-          <option value="Español">Español</option>
-        </select>
-      </div>
-      
-      <div class="setting-item">
-        <label for="translate-mode">翻译模式：</label>
-        <select id="translate-mode">
-          <option value="selected">选中文字</option>
-          <option value="page">整个页面</option>
-          <option value="hover">悬停翻译</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="button-group">
-      <button id="translate-btn" class="btn primary">翻译</button>
-      <button id="save-settings-btn" class="btn secondary">保存设置</button>
-    </div>
-    
-    <div id="status" class="status"></div>
-    
-    <div class="info-section">
-      <p class="info-text">
-        <strong>使用说明：</strong><br>
-        1. 选择API供应商（Ollama本地服务、OpenRouter云端服务或OpenAI官方/兼容接口）<br>
-        2. 配置相应的API参数（Ollama需要本地运行，OpenRouter和OpenAI需要API Key）<br>
-        3. 选择翻译模式后点击"翻译"按钮
-      </p>
-      <p class="info-text" style="margin-top: 10px;">
-        <strong>OpenRouter 说明：</strong><br>
-        - 获取API Key: 访问 <a href="https://openrouter.ai/keys" target="_blank">https://openrouter.ai/keys</a><br>
-        - 支持多种模型: Claude、GPT、Llama等<br>
-        - 按使用量付费，无需本地部署
-      </p>
-      <p class="info-text" style="margin-top: 10px;">
-        <strong>OpenAI 说明：</strong><br>
-        - 获取API Key: 访问 <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a><br>
-        - 支持OpenAI官方模型: GPT-3.5、GPT-4等<br>
-        - 支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）<br>
-        - 自定义API基础URL可连接任何OpenAI兼容的服务
-      </p>
-    </div>
+              <div class="setting-item">
+                <label for="openrouter-app-name">应用名称（可选）：</label>
+                <input type="text" id="openrouter-app-name" placeholder="Ollama 翻译插件">
+              </div>
+            </div>
+
+            <!-- OpenAI 配置 -->
+            <div id="openai-settings" class="provider-settings" style="display: none;">
+              <div class="setting-item">
+                <label for="openai-api-key">OpenAI API Key：</label>
+                <input type="password" id="openai-api-key" placeholder="sk-..." autocomplete="off">
+              </div>
+
+              <div class="setting-item">
+                <label for="openai-model">OpenAI 模型：</label>
+                <input type="text" id="openai-model" value="gpt-3.5-turbo" placeholder="例如: gpt-3.5-turbo, gpt-4">
+              </div>
+
+              <div class="setting-item">
+                <label for="openai-base-url">API 基础 URL（可选）：</label>
+                <input type="text" id="openai-base-url" value="https://api.openai.com/v1"
+                  placeholder="例如: https://api.openai.com/v1">
+              </div>
+
+              <div class="setting-item">
+                <label for="openai-organization">组织 ID（可选）：</label>
+                <input type="text" id="openai-organization" placeholder="例如: org-...">
+              </div>
+            </div>
+
+            <div class="setting-item">
+              <label for="target-lang">目标语言：</label>
+              <select id="target-lang">
+                <option value="中文">中文</option>
+                <option value="粤语">粤语</option>
+                <option value="English">English</option>
+                <option value="日本語">日本語</option>
+                <option value="한국어">한국어</option>
+                <option value="Français">Français</option>
+                <option value="Deutsch">Deutsch</option>
+                <option value="Español">Español</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <label for="translate-mode">翻译模式：</label>
+              <select id="translate-mode">
+                <option value="selected">选中文字</option>
+                <option value="page">整个页面</option>
+                <option value="hover">悬停翻译</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button id="translate-btn" class="btn primary">翻译</button>
+            <button id="save-settings-btn" class="btn secondary">保存设置</button>
+          </div>
+
+          <div id="status" class="status"></div>
+
+          <div class="info-section">
+            <p class="info-text">
+              <strong>使用说明：</strong><br>
+              1. 选择API供应商（Ollama本地服务、OpenRouter云端服务或OpenAI官方/兼容接口）<br>
+              2. 配置相应的API参数（Ollama需要本地运行，OpenRouter和OpenAI需要API Key）<br>
+              3. 选择翻译模式后点击"翻译"按钮
+            </p>
+            <p class="info-text" style="margin-top: 10px;">
+              <strong>OpenRouter 说明：</strong><br>
+              - 获取API Key: 访问 <a href="https://openrouter.ai/keys" target="_blank">https://openrouter.ai/keys</a><br>
+              - 支持多种模型: Claude、GPT、Llama等<br>
+              - 按使用量付费，无需本地部署
+            </p>
+            <p class="info-text" style="margin-top: 10px;">
+              <strong>OpenAI 说明：</strong><br>
+              - 获取API Key: 访问 <a href="https://platform.openai.com/api-keys"
+                target="_blank">https://platform.openai.com/api-keys</a><br>
+              - 支持OpenAI官方模型: GPT-3.5、GPT-4等<br>
+              - 支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）<br>
+              - 自定义API基础URL可连接任何OpenAI兼容的服务
+            </p>
+          </div>
         </div>
 
         <!-- 历史页面 -->
@@ -449,4 +432,5 @@
 
   <script src="sidepanel.js"></script>
 </body>
+
 </html>

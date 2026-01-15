@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Ollama 网页翻译",
+  "name": "AI Translate",
   "version": "1.0.0",
   "description": "使用本地Ollama服务翻译网页内容",
   "permissions": [
@@ -38,8 +38,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ],

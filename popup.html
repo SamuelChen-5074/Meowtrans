@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ollama 网页翻译</title>
+  <title>AI Translate</title>
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="container">
     <div class="header">
-      <h1>Ollama 网页翻译</h1>
+      <h1>AI Translate</h1>
     </div>
-    
+
     <div class="settings-section">
       <div class="setting-item">
         <label for="provider">API 供应商：</label>
@@ -28,7 +30,7 @@
           <label for="ollama-url">Ollama 服务地址：</label>
           <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
         </div>
-        
+
         <div class="setting-item">
           <label for="model-name">模型名称：</label>
           <input type="text" id="model-name" value="qwen2:7b" placeholder="例如: qwen2:7b">
@@ -41,10 +43,11 @@
           <label for="openrouter-api-key">OpenRouter API Key：</label>
           <input type="password" id="openrouter-api-key" placeholder="sk-or-..." autocomplete="off">
         </div>
-        
+
         <div class="setting-item">
           <label for="openrouter-model">OpenRouter 模型：</label>
-          <input type="text" id="openrouter-model" value="anthropic/claude-3-haiku" placeholder="例如: anthropic/claude-3-haiku">
+          <input type="text" id="openrouter-model" value="anthropic/claude-3-haiku"
+            placeholder="例如: anthropic/claude-3-haiku">
         </div>
 
         <div class="setting-item">
@@ -64,7 +67,7 @@
           <label for="openai-api-key">OpenAI API Key：</label>
           <input type="password" id="openai-api-key" placeholder="sk-..." autocomplete="off">
         </div>
-        
+
         <div class="setting-item">
           <label for="openai-model">OpenAI 模型：</label>
           <input type="text" id="openai-model" value="gpt-3.5-turbo" placeholder="例如: gpt-3.5-turbo, gpt-4">
@@ -72,7 +75,8 @@
 
         <div class="setting-item">
           <label for="openai-base-url">API 基础 URL（可选）：</label>
-          <input type="text" id="openai-base-url" value="https://api.openai.com/v1" placeholder="例如: https://api.openai.com/v1">
+          <input type="text" id="openai-base-url" value="https://api.openai.com/v1"
+            placeholder="例如: https://api.openai.com/v1">
         </div>
 
         <div class="setting-item">
@@ -80,7 +84,7 @@
           <input type="text" id="openai-organization" placeholder="例如: org-...">
         </div>
       </div>
-      
+
       <div class="setting-item">
         <label for="target-lang">目标语言：</label>
         <select id="target-lang">
@@ -94,7 +98,7 @@
           <option value="Español">Español</option>
         </select>
       </div>
-      
+
       <div class="setting-item">
         <label for="translate-mode">翻译模式：</label>
         <select id="translate-mode">
@@ -104,14 +108,14 @@
         </select>
       </div>
     </div>
-    
+
     <div class="button-group">
       <button id="translate-btn" class="btn primary">翻译</button>
       <button id="save-settings-btn" class="btn secondary">保存设置</button>
     </div>
-    
+
     <div id="status" class="status"></div>
-    
+
     <div class="info-section">
       <p class="info-text">
         <strong>使用说明：</strong><br>
@@ -127,14 +131,16 @@
       </p>
       <p class="info-text" style="margin-top: 10px;">
         <strong>OpenAI 说明：</strong><br>
-        - 获取API Key: 访问 <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a><br>
+        - 获取API Key: 访问 <a href="https://platform.openai.com/api-keys"
+          target="_blank">https://platform.openai.com/api-keys</a><br>
         - 支持OpenAI官方模型: GPT-3.5、GPT-4等<br>
         - 支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）<br>
         - 自定义API基础URL可连接任何OpenAI兼容的服务
       </p>
     </div>
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
+
 </html>
