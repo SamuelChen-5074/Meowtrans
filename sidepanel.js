@@ -1,5 +1,134 @@
 // Side Panel 特定逻辑 - 复用 popup.js 的功能
 
+// 聊天功能
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+const clearBtn = document.getElementById('clear-btn');
+const chatMessages = document.getElementById('chat-messages');
+const translateStatus = document.getElementById('translate-status');
+
+// 添加聊天消息
+function addMessage(content, type = 'user') {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${type}`;
+  messageDiv.innerHTML = `<div class="message-content">${escapeHtml(content)}</div>`;
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// HTML转义函数
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// 发送翻译请求
+async function sendTranslation() {
+  const text = chatInput.value.trim();
+  if (!text) {
+    showStatus('请输入要翻译的文字', 'error');
+    return;
+  }
+
+  // 添加用户消息
+  addMessage(text, 'user');
+  chatInput.value = '';
+
+  // 获取当前设置
+  const settings = {
+    provider: providerSelect.value,
+    ollamaUrl: ollamaUrlInput.value.trim(),
+    modelName: modelNameInput.value.trim(),
+    openrouterApiKey: openrouterApiKeyInput.value.trim(),
+    openrouterModel: openrouterModelInput.value.trim(),
+    openrouterSiteUrl: openrouterSiteUrlInput.value.trim(),
+    openrouterAppName: openrouterAppNameInput.value.trim(),
+    openaiApiKey: openaiApiKeyInput.value.trim(),
+    openaiModel: openaiModelInput.value.trim(),
+    openaiBaseUrl: openaiBaseUrlInput.value.trim(),
+    openaiOrganization: openaiOrganizationInput.value.trim(),
+    targetLang: targetLangSelect.value,
+    translateMode: 'selected'
+  };
+
+  // 验证配置
+  if (settings.provider === 'openrouter' && !settings.openrouterApiKey) {
+    addMessage('错误: 请先在设置页面配置 OpenRouter API Key', 'system');
+    return;
+  }
+
+  if (settings.provider === 'openai' && !settings.openaiApiKey) {
+    addMessage('错误: 请先在设置页面配置 OpenAI API Key', 'system');
+    return;
+  }
+
+  showStatus('正在翻译...', 'info');
+
+  try {
+    // 通过background script调用翻译API
+    const response = await chrome.runtime.sendMessage({
+      action: 'translateText',
+      text: text,
+      settings: settings
+    });
+
+    if (response.success) {
+      addMessage(response.translatedText, 'system');
+      showStatus('翻译完成', 'success');
+    } else {
+      throw new Error(response.error || '翻译失败');
+    }
+  } catch (error) {
+    console.error('翻译错误:', error);
+    addMessage(`翻译失败: ${error.message}`, 'system');
+    showStatus(`错误: ${error.message}`, 'error');
+  }
+}
+
+// 清空聊天记录
+function clearChat() {
+  chatMessages.innerHTML = '';
+  addMessage('请输入要翻译的文字，我将使用当前设置进行翻译。', 'system');
+}
+
+// 聊天事件监听
+sendBtn.addEventListener('click', sendTranslation);
+
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendTranslation();
+  }
+});
+
+clearBtn.addEventListener('click', clearChat);
+
+// Tab切换功能
+function initTabNavigation() {
+  const tabItems = document.querySelectorAll('.tab-item');
+  const pageContents = document.querySelectorAll('.page-content');
+
+  tabItems.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.getAttribute('data-tab');
+
+      // 移除所有tab的active状态
+      tabItems.forEach(item => item.classList.remove('active'));
+      // 激活当前点击的tab
+      tab.classList.add('active');
+
+      // 隐藏所有页面内容
+      pageContents.forEach(page => page.classList.remove('active'));
+      // 显示目标页面
+      const targetPage = document.getElementById(`page-${targetTab}`);
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+    });
+  });
+}
+
 // 获取DOM元素
 const providerSelect = document.getElementById('provider');
 const ollamaUrlInput = document.getElementById('ollama-url');
@@ -247,6 +376,7 @@ async function closeSidePanel() {
 
 // 初始化
 console.log('sidepanel.js 加载完成，开始初始化...');
+initTabNavigation();
 loadSettings();
 
 // 检查Ollama连接状态
