@@ -7,15 +7,46 @@
   <title>AI Translate</title>
   <link rel="stylesheet" href="popup.css">
   <style>
-    /* 侧边栏特定样式 */
-    body {
-      min-width: 300px;
-      max-width: 100%;
-      height: 100vh;
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
-    }
+    /* 导入现代字体 */
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    
+            /* 定义CSS变量 - 现代色彩系统 */
+            :root {
+              --primary-gradient-start: #4a90e2;
+              --primary-gradient-end: #357abd;
+              --secondary-gradient-start: #667eea;
+              --secondary-gradient-end: #764ba2;
+              --accent-color: #ff6b6b;
+              --success-color: #51cf66;
+              --warning-color: #fcc419;
+              --danger-color: #ff6b6b;
+              --light-bg: #f8f9fa;
+              --dark-bg: #2c3e50;
+              --text-primary: #2c3e50;
+              --text-secondary: #7f8c8d;
+              --border-color: #e1e5eb;
+              --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+              --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+              --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+              --radius-sm: 6px;
+              --radius-md: 12px;
+              --radius-lg: 18px;
+              --transition-fast: 0.2s ease;
+              --transition-normal: 0.3s ease;
+              --transition-slow: 0.5s ease;
+            }
+    
+            /* 侧边栏特定样式 */
+            body {
+              min-width: 300px;
+              max-width: 100%;
+              height: 100vh;
+              overflow: hidden;
+              margin: 0;
+              padding: 0;
+              font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+              background: linear-gradient(135deg, #f0f4f8 0%, #e6ecf4 100%);
+            }
 
     /* 主容器 - 左右布局 */
     .main-container {
@@ -84,7 +115,10 @@
       background: white;
     }
 
-    .header h1 {
+    /* 仅针对非聊天页面的头部样式 */
+    #page-settings .header h1,
+    #page-history .header h1,
+    #page-help .header h1 {
       font-size: 18px;
       margin-bottom: 16px;
     }
@@ -116,106 +150,346 @@
       font-size: 11px;
     }
 
-    /* 页面内容容器 */
-    .page-content {
-      display: none;
-    }
+    /* 页面内容容器 - 高优先级隐藏所有页面内容 */
+        .page-content {
+          display: none !important;
+        }
+        
+        /* 激活页面显示 - 更高特异性选择器 */
+        .container > .page-content.active,
+        #page-chat.active,
+        #page-settings.active,
+        #page-history.active,
+        #page-help.active {
+          display: block !important;
+        }
+        
+        /* 聊天页面特殊显示规则 */
+        #page-chat.active {
+          display: flex !important;
+          flex-direction: column;
+        }
+        
+        /* 帮助页面特殊显示规则 */
+        #page-help.active {
+          display: flex !important;
+        }
+    
+        /* 聊天页面激活状态 */
+        #page-chat.active {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          padding: 5px;
+          background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+        }
+    
+        /* 其他页面激活状态 */
+        #page-settings.active,
+        #page-history.active {
+          display: block;
+        }
+    
+        #page-help.active {
+          display: flex;
+        }
+    
+        
+    
+        .chat-messages {
+          flex: 1;
+          overflow-y: auto;
+          padding: 15px 10px;
+          min-height: 700px;
+          max-height: calc(100vh - 280px);
+          border-radius: 12px;
+          margin-bottom: 15px;
+          width: 100%;
+          background: rgba(255, 255, 255, 0.6);
+          backdrop-filter: blur(5px);
+          border: 1px solid rgba(212, 226, 250, 0.5);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+    
+        .welcome-message {
+          text-align: center;
+          padding: 30px 20px;
+          margin-bottom: 20px;
+          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+          border-radius: 16px;
+          color: white;
+          box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+        }
+    
+        .welcome-icon {
+          font-size: 2.5rem;
+          margin-bottom: 15px;
+        }
+    
+        .welcome-message h3 {
+          font-size: 1.3rem;
+          margin: 10px 0;
+          font-weight: 500;
+        }
+    
+        .welcome-message p {
+          font-size: 0.95rem;
+          opacity: 0.9;
+          margin: 0;
+        }
+    
+        .chat-message {
+          margin-bottom: 20px;
+          padding: 16px 20px;
+          border-radius: 18px;
+          max-width: 90%;
+          word-wrap: break-word;
+          position: relative;
+          animation: slideIn 0.3s ease-out;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+    
+        .chat-message.user {
+          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+          color: white;
+          margin-left: auto;
+          border-bottom-right-radius: 5px;
+        }
+    
+        .chat-message.system {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          color: #495057;
+          margin-right: auto;
+          border-bottom-left-radius: 5px;
+        }
+    
+        .chat-message .message-content {
+          font-size: 14px;
+          line-height: 1.5;
+        }
+    
+        .message-time {
+          font-size: 0.7rem;
+          color: rgba(255, 255, 255, 0.7);
+          text-align: right;
+          margin-top: 5px;
+        }
+    
+        .chat-message.system .message-time {
+          color: #868e96;
+        }
+    
+        .chat-input-area {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          width: 100%;
+          padding: 0 5px;
+        }
+    
+        .input-wrapper {
+          display: flex;
+          align-items: flex-end;
+          gap: 10px;
+          position: relative;
+        }
+    
+        #chat-input {
+          flex: 1;
+          width: 100%;
+          padding: 14px 50px 14px 16px;
+          border: 1px solid #e1e5eb;
+          border-radius: 12px;
+          font-size: 14px;
+          font-family: inherit;
+          resize: none;
+          min-height: 50px;
+          max-height: 150px;
+          background: white;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+        }
+    
+        #chat-input:focus {
+          outline: none;
+          border-color: #4a90e2;
+          box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
+        }
+    
+        .send-button {
+          position: absolute;
+          right: 12px;
+          bottom: 12px;
+          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+          border: none;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          color: white;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3);
+        }
+    
+        .send-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+        }
+    
+        .send-button:active {
+          transform: translateY(0);
+        }
+    
+        .chat-actions {
+          display: flex;
+          gap: 10px;
+          width: 100%;
+        }
+    
+        .action-btn {
+          padding: 10px 16px;
+          border: none;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex: 1;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+    
+        .action-btn.primary {
+          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+          color: white;
+        }
+    
+        .action-btn.secondary {
+          background: #f0f0f0;
+          color: #333;
+          border: 1px solid #d0d0d0;
+        }
+    
+        .action-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    
+        .action-btn:active {
+          transform: translateY(0);
+        }
 
-    /* 聊天页面激活状态 */
-    #page-chat.active {
+    /* 新增加载动画 */
+    .typing-indicator {
       display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 5px;
-    }
-
-    /* 其他页面激活状态 */
-    #page-settings.active,
-    #page-history.active {
-      display: block;
-    }
-
-    #page-help.active {
-      display: flex;
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 7px 5px;
-      min-height: 739px;
-      max-height: calc(100vh - 250px);
-      border-radius: 4px;
-      margin-bottom: 5px;
-      width: 100%;
-    }
-
-    .chat-message {
-      margin-bottom: 16px;
-      padding: 14px 18px;
-      border-radius: 4px;
-      max-width: 95%;
-      word-wrap: break-word;
-    }
-
-    .chat-message.user {
-      background: #4a90e2;
-      color: white;
-      margin-left: auto;
-    }
-
-    .chat-message.system {
-      background: #e9ecef;
+      align-items: center;
+      padding: 16px 20px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       color: #495057;
       margin-right: auto;
+      width: fit-content;
+      max-width: 90%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
-    .chat-message .message-content {
-      font-size: 14px;
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      background: #4a90e2;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 0 2px;
+      animation: bounce 1.3s infinite;
     }
 
-    .chat-input-area {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.15s;
     }
 
-    #chat-input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #d0d0d0;
-      border-radius: 4px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 80px;
-      max-height: 150px;
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.3s;
     }
 
-    #chat-input:focus {
-      outline: none;
-      border-color: #4a90e2;
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
-    .chat-actions {
-      display: flex;
-      gap: 10px;
-      width: 100%;
+    /* 平滑滚动 */
+    html {
+      scroll-behavior: smooth;
     }
 
-    .chat-actions .btn {
-      flex: 1;
+    /* 卡片悬浮效果 */
+    .card-hover {
+      transition: all var(--transition-normal) ease;
     }
 
-    .chat-actions .btn.primary {
-      flex: 2;
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* 按钮悬停效果 */
+    .btn-hover-effect {
+      transition: all var(--transition-fast) ease;
+    }
+    
+    /* 输入框聚焦效果 */
+    .input-focus-effect:focus {
+      border-color: var(--primary-gradient-start) !important;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2) !important;
+    }
+    
+    /* 消息淡入动画 */
+    @keyframes messageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .chat-message {
+      animation: messageFadeIn 0.3s ease-out;
+    }
+    
+    /* 脉冲动画效果 */
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+      }
     }
 
     /* 帮助中心页面优化样式 */
     #page-help {
-      display: flex;
-      flex-direction: column;
       height: 880px;
       overflow: hidden;
     }
@@ -229,7 +503,7 @@
     #page-help .header h1 {
       font-size: 24px;
       font-weight: 700;
-      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -269,11 +543,11 @@
 
     .help-card {
       background: white;
-      border-radius: 12px;
+      border-radius: var(--radius-md);
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e8ecef;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+      transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
     }
@@ -285,15 +559,15 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+      background: linear-gradient(90deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity var(--transition-normal) ease;
     }
 
     .help-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.15);
-      border-color: #4a90e2;
+      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.18);
+      border-color: var(--primary-gradient-start);
     }
 
     .help-card:hover::before {
@@ -307,19 +581,19 @@
       margin-bottom: 12px;
       font-size: 16px;
       font-weight: 600;
-      color: #2c3e50;
+      color: var(--text-primary);
     }
 
     .help-card-title svg {
       width: 20px;
       height: 20px;
-      fill: #4a90e2;
+      fill: var(--primary-gradient-start);
     }
 
     .help-card-content {
       font-size: 13px;
       line-height: 1.6;
-      color: #5a6c7d;
+      color: var(--text-secondary);
     }
 
     .help-card-content ul {
@@ -332,19 +606,19 @@
     }
 
     .help-card-content a {
-      color: #4a90e2;
+      color: var(--primary-gradient-start);
       text-decoration: none;
       font-weight: 500;
-      transition: color 0.2s ease;
+      transition: color var(--transition-fast) ease;
     }
 
     .help-card-content a:hover {
-      color: #357abd;
+      color: var(--primary-gradient-end);
       text-decoration: underline;
     }
 
     .help-card-content strong {
-      color: #2c3e50;
+      color: var(--text-primary);
       font-weight: 600;
     }
 
@@ -357,7 +631,7 @@
     }
 
     .provider-card:hover {
-      box-shadow: 0 4px 16px rgba(230, 126, 34, 0.15);
+      box-shadow: 0 6px 20px rgba(230, 126, 34, 0.18);
       border-color: #e67e22;
     }
 
@@ -374,7 +648,7 @@
     }
 
     .faq-card:hover {
-      box-shadow: 0 4px 16px rgba(39, 174, 96, 0.15);
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.18);
       border-color: #27ae60;
     }
 
@@ -418,28 +692,42 @@
     <div class="content-area">
       <div class="container">
         <!-- 聊天页面 -->
-        <div id="page-chat" class="page-content active">
-          <!-- 聊天消息区域 -->
-          <div id="chat-messages" class="chat-messages">
-            <div class="chat-message system">
-              <div class="message-content">
-                请输入要翻译的文字，我将使用当前设置进行翻译。
-              </div>
-            </div>
-          </div>
-
-          <!-- 输入区域 -->
-          <div class="chat-input-area">
-            <textarea id="chat-input" placeholder="输入要翻译的文字..." rows="3"></textarea>
-            <div class="chat-actions">
-              <button id="send-btn" class="btn primary">发送</button>
-              <button id="clear-btn" class="btn secondary">清空</button>
-            </div>
-          </div>
-
-          <!-- 翻译状态 -->
-          <div id="translate-status" class="status"></div>
-        </div>
+                <div id="page-chat" class="page-content active">
+                  
+                  <!-- 聊天消息区域 -->
+                  <div id="chat-messages" class="chat-messages">
+                    <div class="welcome-message">
+                      <div class="welcome-icon">✨</div>
+                      <h3>欢迎使用AI翻译助手</h3>
+                      <p>在这里输入您需要翻译的内容，我将为您提供高质量的翻译服务</p>
+                    </div>
+                    <div class="chat-message system">
+                      <div class="message-content">
+                        请输入要翻译的文字，我将使用当前设置进行翻译。
+                      </div>
+                      <div class="message-time"></div>
+                    </div>
+                  </div>
+        
+                  <!-- 输入区域 -->
+                  <div class="chat-input-area">
+                    <div class="input-wrapper">
+                      <textarea id="chat-input" placeholder="输入要翻译的文字..." rows="1"></textarea>
+                      <button id="send-btn" class="send-button" title="发送翻译请求">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="chat-actions">
+                      <button id="clear-btn" class="action-btn secondary">清空对话</button>
+                      <button id="translate-mode-btn" class="action-btn primary">翻译模式</button>
+                    </div>
+                  </div>
+        
+                  <!-- 翻译状态 -->
+                  <div id="translate-status" class="status"></div>
+                </div>
 
         <!-- 设置页面 -->
         <div id="page-settings" class="page-content">

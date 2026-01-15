@@ -8,19 +8,49 @@ const chatMessages = document.getElementById('chat-messages');
 const translateStatus = document.getElementById('translate-status');
 
 // 添加聊天消息
-function addMessage(content, type = 'user') {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `chat-message ${type}`;
-  messageDiv.innerHTML = `<div class="message-content">${escapeHtml(content)}</div>`;
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+ function addMessage(content, type = 'user') {
+   const messageDiv = document.createElement('div');
+   messageDiv.className = `chat-message ${type}`;
+   
+   // 获取当前时间
+   const now = new Date();
+   const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+   
+   messageDiv.innerHTML = `
+     <div class="message-content">${escapeHtml(content)}</div>
+     <div class="message-time">${timeString}</div>
+   `;
+   chatMessages.appendChild(messageDiv);
+   chatMessages.scrollTop = chatMessages.scrollHeight;
+ }
 
 // HTML转义函数
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// 添加打字指示器
+function addTypingIndicator() {
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'typing-indicator';
+  typingDiv.id = 'typing-indicator';
+  typingDiv.innerHTML = `
+    <span></span>
+    <span></span>
+    <span></span>
+  `;
+  chatMessages.appendChild(typingDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return typingDiv;
+}
+
+// 移除打字指示器
+function removeTypingIndicator(typingElement) {
+  if (typingElement && typingElement.parentNode) {
+    typingElement.parentNode.removeChild(typingElement);
+  }
 }
 
 // 发送翻译请求
@@ -64,6 +94,9 @@ async function sendTranslation() {
   }
 
   showStatus('正在翻译...', 'info');
+  
+  // 显示打字指示器
+  const typingIndicator = addTypingIndicator();
 
   try {
     // 通过background script调用翻译API
@@ -73,6 +106,9 @@ async function sendTranslation() {
       settings: settings
     });
 
+    // 移除打字指示器
+    removeTypingIndicator(typingIndicator);
+
     if (response.success) {
       addMessage(response.translatedText, 'system');
       showStatus('翻译完成', 'success');
@@ -80,6 +116,9 @@ async function sendTranslation() {
       throw new Error(response.error || '翻译失败');
     }
   } catch (error) {
+    // 移除打字指示器
+    removeTypingIndicator(typingIndicator);
+    
     console.error('翻译错误:', error);
     addMessage(`翻译失败: ${error.message}`, 'system');
     showStatus(`错误: ${error.message}`, 'error');
@@ -87,22 +126,59 @@ async function sendTranslation() {
 }
 
 // 清空聊天记录
-function clearChat() {
-  chatMessages.innerHTML = '';
-  addMessage('请输入要翻译的文字，我将使用当前设置进行翻译。', 'system');
-}
+ function clearChat() {
+   chatMessages.innerHTML = '';
+   // 添加欢迎信息
+   const welcomeDiv = document.createElement('div');
+   welcomeDiv.className = 'welcome-message';
+   welcomeDiv.innerHTML = `
+     <div class="welcome-icon">✨</div>
+     <h3>欢迎使用AI翻译助手</h3>
+     <p>在这里输入您需要翻译的内容，我将为您提供高质量的翻译服务</p>
+   `;
+   chatMessages.appendChild(welcomeDiv);
+   addMessage('请输入要翻译的文字，我将使用当前设置进行翻译。', 'system');
+ }
 
-// 聊天事件监听
-sendBtn.addEventListener('click', sendTranslation);
+// 自动调整文本框高度
+ function adjustTextareaHeight() {
+   chatInput.style.height = 'auto';
+   chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+ }
 
-chatInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendTranslation();
-  }
-});
+ // 按钮悬停效果
+ function addButtonHoverEffects() {
+   const buttons = document.querySelectorAll('button');
+   buttons.forEach(button => {
+     button.classList.add('btn-hover-effect');
+   });
+ }
 
-clearBtn.addEventListener('click', clearChat);
+ // 添加输入框焦点效果
+ function addInputFocusEffects() {
+   chatInput.classList.add('input-focus-effect');
+ }
+
+ // 聊天事件监听
+ sendBtn.addEventListener('click', sendTranslation);
+
+ chatInput.addEventListener('input', adjustTextareaHeight);
+
+ chatInput.addEventListener('keypress', (e) => {
+   if (e.key === 'Enter' && !e.shiftKey) {
+     e.preventDefault();
+     sendTranslation();
+   }
+ });
+
+ clearBtn.addEventListener('click', clearChat);
+
+ // 初始化时调整文本框高度
+ adjustTextareaHeight();
+ 
+ // 添加交互效果
+ addButtonHoverEffects();
+ addInputFocusEffects();
 
 // Tab切换功能
 function initTabNavigation() {
