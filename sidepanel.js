@@ -24,9 +24,23 @@ let currentTargetLang = '中文';
    messageDiv.innerHTML = `
      <div class="message-content">${escapeHtml(content)}</div>
      <div class="message-time">${timeString}</div>
+     <div class="message-actions">
+       <button class="copy-button" title="复制内容">
+         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <path d="M16 1H4C2.89543 1 2 1.89543 2 3V17H4V3H16V1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+           <path d="M8 5H20C21.1046 5 22 5.89543 22 7V21C22 22.1046 21.1046 23 20 23H8C6.89543 23 6 22.1046 5 21V7C5 5.89543 5.89543 5 7 5V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+       </button>
+     </div>
    `;
    chatMessages.appendChild(messageDiv);
    chatMessages.scrollTop = chatMessages.scrollHeight;
+   
+   // 为复制按钮添加事件监听器
+   const copyButton = messageDiv.querySelector('.copy-button');
+   copyButton.addEventListener('click', () => {
+     copyToClipboard(content);
+   });
  }
 
 // HTML转义函数
@@ -34,6 +48,76 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// 复制到剪贴板函数
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    // 可选：显示复制成功的反馈
+    showCopyFeedback();
+  } catch (err) {
+    console.error('复制失败:', err);
+    // 降级方案：使用旧方法
+    fallbackCopyTextToClipboard(text);
+  }
+}
+
+// 降级方案：使用旧方法复制到剪贴板
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  
+  // 避免滚动到底部
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  textArea.style.pointerEvents = "none";
+  textArea.style.zIndex = "-1000";
+  
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopyFeedback();
+    } else {
+      console.error('复制失败');
+    }
+  } catch (err) {
+    console.error('复制命令执行失败', err);
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// 显示复制成功的反馈
+function showCopyFeedback() {
+  // 创建临时反馈元素
+  const feedback = document.createElement('div');
+  feedback.textContent = '已复制!';
+  feedback.style.position = 'fixed';
+  feedback.style.bottom = '20px';
+  feedback.style.right = '20px';
+  feedback.style.backgroundColor = '#4CAF50';
+  feedback.style.color = 'white';
+  feedback.style.padding = '8px 16px';
+  feedback.style.borderRadius = '4px';
+  feedback.style.zIndex = '10000';
+  feedback.style.fontSize = '14px';
+  feedback.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+  
+  document.body.appendChild(feedback);
+  
+  // 2秒后移除反馈元素
+  setTimeout(() => {
+    if (feedback.parentNode) {
+      feedback.parentNode.removeChild(feedback);
+    }
+  }, 2000);
 }
 
 // 添加打字指示器
