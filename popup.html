@@ -87,16 +87,22 @@
 
       <div class="setting-item">
         <label for="target-lang">目标语言：</label>
-        <select id="target-lang">
-          <option value="中文">中文</option>
-          <option value="粤语">粤语</option>
-          <option value="English">English</option>
-          <option value="日本語">日本語</option>
-          <option value="한국어">한국어</option>
-          <option value="Français">Français</option>
-          <option value="Deutsch">Deutsch</option>
-          <option value="Español">Español</option>
-        </select>
+        <div class="custom-select" id="target-lang-select">
+          <div class="select-trigger" id="target-lang">
+            <span class="select-value">中文</span>
+            <span class="select-arrow">▼</span>
+          </div>
+          <div class="select-dropdown select-dropdown-up">
+            <div class="select-option" data-value="中文">中文</div>
+            <div class="select-option" data-value="粤语">粤语</div>
+            <div class="select-option" data-value="English">English</div>
+            <div class="select-option" data-value="日本語">日本語</div>
+            <div class="select-option" data-value="한국어">한국어</div>
+            <div class="select-option" data-value="Français">Français</div>
+            <div class="select-option" data-value="Deutsch">Deutsch</div>
+            <div class="select-option" data-value="Español">Español</div>
+          </div>
+        </div>
       </div>
 
       <div class="setting-item">

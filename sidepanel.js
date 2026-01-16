@@ -4,8 +4,13 @@
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const clearBtn = document.getElementById('clear-btn');
+const langBtn = document.getElementById('lang-btn');
+const langDropdown = document.getElementById('lang-dropdown');
 const chatMessages = document.getElementById('chat-messages');
 const translateStatus = document.getElementById('translate-status');
+
+// 当前选择的目标语言
+let currentTargetLang = '中文';
 
 // 添加聊天消息
  function addMessage(content, type = 'user') {
@@ -518,6 +523,37 @@ providerSelect.addEventListener('change', (e) => {
 saveSettingsBtn.addEventListener('click', () => {
   console.log('保存设置按钮被点击');
   saveSettings();
+});
+
+// 语言选择按钮点击事件
+langBtn.addEventListener('click', () => {
+  langDropdown.classList.toggle('show');
+});
+
+// 语言选项点击事件
+const langDropdownItems = document.querySelectorAll('.lang-dropdown-item');
+langDropdownItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const lang = item.getAttribute('data-lang');
+    currentTargetLang = lang;
+    
+    // 更新选中状态
+    langDropdownItems.forEach(i => i.classList.remove('selected'));
+    item.classList.add('selected');
+    
+    // 更新设置中的目标语言
+    targetLangSelectPt.value = lang;
+    saveCurrentSettings();
+    
+    console.log('选择语言:', lang);
+  });
+});
+
+// 点击页面其他地方时关闭下拉框
+document.addEventListener('click', (e) => {
+  if (!langDropdown.contains(e.target) && !langBtn.contains(e.target)) {
+    langDropdown.classList.remove('show');
+  }
 });
 
 // 当页面翻译tab的目标语言或翻译模式改变时，立即保存设置

@@ -15,7 +15,12 @@ const openaiApiKeyInput = document.getElementById('openai-api-key');
 const openaiModelInput = document.getElementById('openai-model');
 const openaiBaseUrlInput = document.getElementById('openai-base-url');
 const openaiOrganizationInput = document.getElementById('openai-organization');
+// 目标语言选择相关元素
 const targetLangSelect = document.getElementById('target-lang');
+const targetLangDropdown = document.getElementById('target-lang-select');
+const targetLangValue = targetLangSelect.querySelector('.select-value');
+const targetLangArrow = targetLangSelect.querySelector('.select-arrow');
+const targetLangOptions = targetLangDropdown.querySelectorAll('.select-option');
 const translateModeSelect = document.getElementById('translate-mode');
 const translateBtn = document.getElementById('translate-btn');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
@@ -58,7 +63,7 @@ async function loadSettings() {
   openaiModelInput.value = settings.openaiModel || 'gpt-3.5-turbo';
   openaiBaseUrlInput.value = settings.openaiBaseUrl || 'https://api.openai.com/v1';
   openaiOrganizationInput.value = settings.openaiOrganization || '';
-  targetLangSelect.value = settings.targetLang;
+  setTargetLangValue(settings.targetLang); // 使用新的设置函数
   translateModeSelect.value = settings.translateMode;
   
   // 切换显示相应的设置面板
@@ -82,6 +87,75 @@ function toggleProviderSettings(provider) {
   }
 }
 
+// 获取目标语言的当前值
+function getTargetLangValue() {
+  return targetLangValue.textContent;
+}
+
+// 设置目标语言的值
+function setTargetLangValue(value) {
+  targetLangValue.textContent = value;
+  // 更新选中的选项样式
+  targetLangOptions.forEach(option => {
+    if (option.dataset.value === value) {
+      option.classList.add('selected');
+    } else {
+      option.classList.remove('selected');
+    }
+  });
+}
+
+// 初始化自定义下拉组件
+function initCustomSelect() {
+  // 点击触发器切换下拉菜单
+  targetLangSelect.addEventListener('click', (e) => {
+    e.preventDefault();
+    const dropdown = targetLangDropdown.querySelector('.select-dropdown');
+    const isActive = targetLangSelect.classList.contains('active');
+    
+    // 关闭所有其他下拉菜单
+    closeAllDropdowns();
+    
+    if (!isActive) {
+      targetLangSelect.classList.add('active');
+      dropdown.classList.add('show');
+      // 确保向上弹出
+      dropdown.classList.add('select-dropdown-up');
+    }
+  });
+
+  // 点击选项选择值
+  targetLangOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const value = option.dataset.value;
+      setTargetLangValue(value);
+      closeAllDropdowns();
+    });
+  });
+
+  // 点击外部关闭下拉菜单
+  document.addEventListener('click', (e) => {
+    if (!targetLangDropdown.contains(e.target)) {
+      closeAllDropdowns();
+    }
+  });
+}
+
+// 关闭所有下拉菜单
+function closeAllDropdowns() {
+  const dropdowns = document.querySelectorAll('.select-dropdown');
+  const triggers = document.querySelectorAll('.select-trigger');
+  
+  dropdowns.forEach(dropdown => {
+    dropdown.classList.remove('show');
+  });
+  
+  triggers.forEach(trigger => {
+    trigger.classList.remove('active');
+  });
+}
+
 // 保存设置
 async function saveSettings() {
   const settings = {
@@ -96,7 +170,7 @@ async function saveSettings() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
-    targetLang: targetLangSelect.value,
+    targetLang: getTargetLangValue(), // 使用新的获取函数
     translateMode: translateModeSelect.value
   };
   
@@ -234,6 +308,7 @@ translateBtn.addEventListener('click', () => {
 // 初始化
 console.log('popup.js 加载完成，开始初始化...');
 loadSettings();
+initCustomSelect(); // 初始化自定义下拉组件
 
 // 检查Ollama连接状态
 async function checkConnection() {

@@ -180,7 +180,6 @@
           flex-direction: column;
           height: 100%;
           padding: 5px;
-          background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
         }
     
         /* 其他页面激活状态 */
@@ -298,22 +297,119 @@
     
         .input-wrapper {
           display: flex;
-          align-items: flex-end;
+          align-items: flex-end !important;
           gap: 10px;
           position: relative;
+        }
+
+        .button-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 0 !important;
+          align-self: flex-end;
+          justify-content: flex-end;
+        }
+
+        .clear-button {
+          background: #f0f0f0;
+          border: none;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          color: #666;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .clear-button:hover {
+          background: #e0e0e0;
+          color: #333;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .clear-button:active {
+          transform: translateY(0);
+        }
+
+        .lang-button {
+          background: #f0f0f0;
+          border: none;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          color: #666;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .lang-button:hover {
+          background: #e0e0e0;
+          color: #333;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-button:active {
+          transform: translateY(0);
+        }
+
+        .lang-dropdown {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          background: white;
+          border: 1px solid #e1e5eb;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          z-index: 1000;
+          min-width: 150px;
+          display: none;
+        }
+
+        .lang-dropdown.show {
+          display: block;
+        }
+
+        .lang-dropdown-item {
+          padding: 10px 15px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          font-size: 14px;
+          color: #333;
+        }
+
+        .lang-dropdown-item:hover {
+          background: #f5f7fa;
+          color: #4a90e2;
+        }
+
+        .lang-dropdown-item.selected {
+          background: #e8f4fd;
+          color: #1976d2;
         }
     
         #chat-input {
           flex: 1;
           width: 100%;
-          padding: 14px 50px 14px 16px;
+          padding: 14px 16px 14px 16px;
           border: 1px solid #e1e5eb;
           border-radius: 12px;
           font-size: 14px;
           font-family: inherit;
           resize: none;
-          min-height: 50px;
-          max-height: 150px;
+          height: 155px !important;
+          min-height: 155px !important;
+          max-height: 155px !important;
           background: white;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
           transition: all 0.3s ease;
@@ -326,9 +422,6 @@
         }
     
         .send-button {
-          position: absolute;
-          right: 12px;
-          bottom: 12px;
           background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
           border: none;
           border-radius: 8px;
@@ -349,44 +442,6 @@
         }
     
         .send-button:active {
-          transform: translateY(0);
-        }
-    
-        .chat-actions {
-          display: flex;
-          gap: 10px;
-          width: 100%;
-        }
-    
-        .action-btn {
-          padding: 10px 16px;
-          border: none;
-          border-radius: 10px;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          flex: 1;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-    
-        .action-btn.primary {
-          background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-          color: white;
-        }
-    
-        .action-btn.secondary {
-          background: #f0f0f0;
-          color: #333;
-          border: 1px solid #d0d0d0;
-        }
-    
-        .action-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-    
-        .action-btn:active {
           transform: translateY(0);
         }
 
@@ -952,15 +1007,35 @@
                   <div class="chat-input-area">
                     <div class="input-wrapper">
                       <textarea id="chat-input" placeholder="输入要翻译的文字..." rows="1"></textarea>
-                      <button id="send-btn" class="send-button" title="发送翻译请求">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div class="chat-actions">
-                      <button id="clear-btn" class="action-btn secondary">清空对话</button>
-                      <button id="translate-mode-btn" class="action-btn primary">翻译模式</button>
+                      <div class="button-group">
+                        <button id="lang-btn" class="lang-button" title="选择目标语言">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                        
+                        <!-- 语言选择下拉菜单 -->
+                        <div id="lang-dropdown" class="lang-dropdown">
+                          <div class="lang-dropdown-item" data-lang="中文">中文</div>
+                          <div class="lang-dropdown-item" data-lang="粤语">粤语</div>
+                          <div class="lang-dropdown-item" data-lang="English">English</div>
+                          <div class="lang-dropdown-item" data-lang="日本語">日本語</div>
+                          <div class="lang-dropdown-item" data-lang="한국어">한국어</div>
+                          <div class="lang-dropdown-item" data-lang="Français">Français</div>
+                          <div class="lang-dropdown-item" data-lang="Deutsch">Deutsch</div>
+                          <div class="lang-dropdown-item" data-lang="Español">Español</div>
+                        </div>
+                        <button id="clear-btn" class="clear-button" title="清空对话">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                        <button id="send-btn" class="send-button" title="发送翻译请求">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
         
