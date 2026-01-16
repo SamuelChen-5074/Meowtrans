@@ -1,0 +1,120 @@
+/* 左侧导航栏 */
+.sidebar {
+  width: 48px;
+  min-width: 48px;
+  background: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  border-right: 1px solid #d0d0d0;
+}
+
+/* Tab项 */
+.tab-item {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.tab-item:hover {
+  background: #d0d0d0;
+}
+
+.tab-item.active {
+  background: #4a90e2;
+}
+
+.tab-item.active svg {
+  fill: white;
+}
+
+.tab-item svg {
+  width: 20px;
+  height: 20px;
+  fill: #666;
+}
+
+/* 仅针对非聊天页面的头部样式 */
+#page-settings .header h1,
+#page-help .header h1,
+#page-pagetranslate .header h1 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.setting-item {
+  margin-bottom: 12px;
+}
+
+.setting-item label {
+  font-size: 12px;
+}
+
+.setting-item input[type="text"],
+.setting-item select {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.btn {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.info-section {
+  padding: 12px;
+}
+
+.info-text {
+  font-size: 11px;
+}
+
+/* 页面内容容器 - 高优先级隐藏所有页面内容 */
+.page-content {
+  display: none !important;
+}
+
+/* 激活页面显示 - 更高特异性选择器 */
+.container > .page-content.active,
+#page-chat.active,
+#page-settings.active,
+#page-help.active {
+  display: block !important;
+}
+
+/* 聊天页面特殊显示规则 */
+#page-chat.active {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* 帮助页面特殊显示规则 */
+#page-help.active {
+  display: flex !important;
+}
+
+/* 聊天页面激活状态 */
+#page-chat.active {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 5px;
+}
+
+/* 其他页面激活状态 */
+#page-settings.active {
+  display: block;
+}
+
+#page-help.active {
+  display: flex;
+}

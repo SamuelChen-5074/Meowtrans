@@ -1,0 +1,67 @@
+/* 导入现代字体 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* 定义CSS变量 - 现代色彩系统 */
+:root {
+  --primary-gradient-start: #4a90e2;
+  --primary-gradient-end: #357abd;
+  --secondary-gradient-start: #667eea;
+  --secondary-gradient-end: #764ba2;
+  --accent-color: #ff6b6b;
+  --success-color: #51cf66;
+  --warning-color: #fcc419;
+  --danger-color: #ff6b6b;
+  --light-bg: #f8f9fa;
+  --dark-bg: #2c3e50;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --border-color: #e1e5eb;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* 侧边栏特定样式 */
+body {
+  min-width: 300px;
+  max-width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e6ecf4 100%);
+}
+
+/* 主容器 - 左右布局 */
+.main-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 右侧内容区域 */
+.content-area {
+  flex: 1;
+  overflow-y: hidden;
+  background: #f5f7fa;
+}
+
+.container {
+  min-height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 5px;
+  background: white;
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
