@@ -2,6 +2,9 @@
 const TRANSLATED_ATTR = 'data-ollama-translated';
 const ORIGINAL_ATTR = 'data-ollama-original';
 
+// 用于控制翻译过程的全局变量
+let isTranslating = false;
+
 // 通过background script调用翻译API，避免CORS问题
 async function translateWithProvider(text, settings) {
   const response = await chrome.runtime.sendMessage({
@@ -250,13 +253,20 @@ async function translateBatch(texts, settings) {
 // 翻译整个页面（优化版：批量+并发）
 async function translatePage(settings) {
   try {
+    // 设置正在翻译标志
+    isTranslating = true;
+    
     // 先恢复原文，确保每次翻译都是基于原文进行
     restoreOriginalText();
+
+    // 再次确认翻译标志为true（因为在restoreOriginalText()中可能被设为false）
+    isTranslating = true;
 
     // 获取所有文本节点
     const textNodes = getTextNodes(document.body);
     
     if (textNodes.length === 0) {
+      isTranslating = false;
       return { success: false, error: '页面没有可翻译的文本' };
     }
     
@@ -264,6 +274,13 @@ async function translatePage(settings) {
     const nodesToTranslate = [];
     for (const node of textNodes) {
       const text = node.textContent.trim();
+      
+      // 检查是否在翻译过程中被要求停止
+      if (!isTranslating) {
+        console.log('翻译被中断，停止处理剩余节点');
+        isTranslating = false;
+        return { success: false, error: '翻译被中断' };
+      }
       
       // 跳过已翻译的节点
       if (node.parentElement.hasAttribute(TRANSLATED_ATTR)) {
@@ -279,6 +296,7 @@ async function translatePage(settings) {
     }
     
     if (nodesToTranslate.length === 0) {
+      isTranslating = false;
       return { success: false, error: '没有需要翻译的文本' };
     }
     
@@ -290,29 +308,69 @@ async function translatePage(settings) {
     // 分批处理
     const batches = [];
     for (let i = 0; i < nodesToTranslate.length; i += batchSize) {
+      // 检查是否在翻译过程中被要求停止
+      if (!isTranslating) {
+        console.log('翻译被中断，停止分批处理');
+        isTranslating = false;
+        return { success: false, error: '翻译被中断' };
+      }
       batches.push(nodesToTranslate.slice(i, i + batchSize));
     }
     
     // 并发处理批次
     for (let i = 0; i < batches.length; i += concurrency) {
+      // 检查是否在翻译过程中被要求停止
+      if (!isTranslating) {
+        console.log('翻译被中断，停止并发处理');
+        isTranslating = false;
+        return { success: false, error: '翻译被中断' };
+      }
+      
       const concurrentBatches = batches.slice(i, i + concurrency);
       
       const results = await Promise.allSettled(
         concurrentBatches.map(batch => {
+          // 检查是否在翻译过程中被要求停止
+          if (!isTranslating) {
+            console.log('翻译被中断，停止批次翻译');
+            return Promise.reject(new Error('翻译被中断'));
+          }
+          
           const texts = batch.map(item => item.text);
           return translateBatch(texts, settings);
         })
       );
+      
+      // 检查是否在翻译过程中被要求停止
+      if (!isTranslating) {
+        console.log('翻译被中断，停止处理结果');
+        isTranslating = false;
+        return { success: false, error: '翻译被中断' };
+      }
       
       // 处理每个批次的结果
       for (let j = 0; j < concurrentBatches.length; j++) {
         const batch = concurrentBatches[j];
         const result = results[j];
         
+        // 检查是否在翻译过程中被要求停止
+        if (!isTranslating) {
+          console.log('翻译被中断，停止处理单个批次');
+          isTranslating = false;
+          return { success: false, error: '翻译被中断' };
+        }
+        
         if (result.status === 'fulfilled') {
           const translatedTexts = result.value;
           
           for (let k = 0; k < batch.length; k++) {
+            // 检查是否在翻译过程中被要求停止
+            if (!isTranslating) {
+              console.log('翻译被中断，停止应用翻译');
+              isTranslating = false;
+              return { success: false, error: '翻译被中断' };
+            }
+            
             const { node, text } = batch[k];
             const translatedText = translatedTexts[k] || text;
             
@@ -343,12 +401,17 @@ async function translatePage(settings) {
       }
     }
     
+    // 翻译完成后重置标志
+    isTranslating = false;
+    
     return {
       success: true,
       message: `翻译完成：成功 ${translatedCount} 处，失败 ${failedCount} 处`
     };
   } catch (error) {
     console.error('页面翻译错误:', error);
+    // 确保在任何情况下都重置翻译标志
+    isTranslating = false;
     return { success: false, error: error.message };
   }
 }
@@ -386,8 +449,14 @@ function getTextNodes(element) {
   return textNodes;
 }
 
+
+
 // 恢复原文
 function restoreOriginalText() {
+  // 中断任何正在进行的翻译
+  isTranslating = false;
+  console.log('翻译过程已被中断，正在恢复原文');
+  
   const elements = document.querySelectorAll(`[${TRANSLATED_ATTR}]`);
   
   elements.forEach(element => {
@@ -525,6 +594,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'restore') {
     console.log('执行恢复原文');
     restoreOriginalText().then(sendResponse);
+    return true;
+  } else if (request.action === 'cancelAndRestore') {
+    console.log('执行取消翻译并恢复原文');
+    isTranslating = false; // 先中断任何正在进行的翻译
+    const result = restoreOriginalText(); // 然后恢复原文
+    sendResponse(result);
     return true;
   }
   

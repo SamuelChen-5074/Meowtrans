@@ -356,10 +356,48 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 // 监听存储变化
-chrome.storage.onChanged.addListener((changes, area) => {
+chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area === 'local' && changes.translateSettings) {
-    // 当设置改变时，可以执行一些操作
-    console.log('翻译设置已更新:', changes.translateSettings.newValue);
+    const oldValue = changes.translateSettings.oldValue || {};
+    const newValue = changes.translateSettings.newValue || {};
+    
+    console.log('翻译设置已更新:', { oldValue, newValue });
+    
+    // 检查autoTranslatePage设置是否发生变化
+    if (oldValue.autoTranslatePage !== newValue.autoTranslatePage) {
+      console.log('autoTranslatePage设置已更改:', { oldValue: oldValue.autoTranslatePage, newValue: newValue.autoTranslatePage });
+      
+      // 如果autoTranslatePage从true变为false，则需要恢复所有已打开页面的原文
+      if (oldValue.autoTranslatePage === true && newValue.autoTranslatePage === false) {
+        console.log('自动翻译页面功能已关闭，正在恢复所有已打开页面的原文');
+        
+        // 获取所有已打开的标签页
+        const tabs = await chrome.tabs.query({});
+        
+        for (const tab of tabs) {
+          if (tab.url && tab.id) {
+            try {
+              // 首先中断任何正在进行的翻译，然后恢复原文
+              await chrome.tabs.sendMessage(tab.id, {
+                action: 'cancelAndRestore'
+              });
+              console.log(`已向标签页 ${tab.id} 发送取消翻译并恢复原文指令`);
+            } catch (error) {
+              try {
+                // 如果cancelAndRestore失败，尝试直接恢复
+                await chrome.tabs.sendMessage(tab.id, {
+                  action: 'restore'
+                });
+                console.log(`已向标签页 ${tab.id} 发送恢复原文指令`);
+              } catch (secondError) {
+                // 如果标签页没有content script，则忽略错误
+                console.log(`标签页 ${tab.id} 无法接收恢复指令，可能是扩展页面或受限页面:`, secondError.message);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 });
 
