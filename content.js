@@ -5,6 +5,12 @@ const ORIGINAL_ATTR = 'data-ollama-original';
 // 用于控制翻译过程的全局变量
 let isTranslating = false;
 
+// 页面唯一ID，用于区分不同页面加载实例
+const PAGE_INSTANCE_ID = Date.now() + Math.random();
+
+// 页面加载时间戳，用于识别页面是否刚刚加载
+const PAGE_LOAD_TIMESTAMP = Date.now();
+
 // 通过background script调用翻译API，避免CORS问题
 async function translateWithProvider(text, settings) {
   const response = await chrome.runtime.sendMessage({
@@ -593,10 +599,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   } else if (request.action === 'cancelAndRestore') {
     console.log('执行取消翻译并恢复原文');
-    isTranslating = false; // 先中断任何正在进行的翻译
-    const result = restoreOriginalText(); // 然后恢复原文
-    isTranslating = false; // 确保标志保持为false
-    sendResponse(result);
+    
+    // 检查页面是否刚刚加载（1秒内），如果是则忽略中断消息
+    // 这可以防止页面跳转后立即收到旧页面的中断消息
+    const timeSinceLoad = Date.now() - PAGE_LOAD_TIMESTAMP;
+    const IGNORE_PERIOD = 1000; // 1秒的保护期
+    
+    if (timeSinceLoad < IGNORE_PERIOD) {
+      console.log(`页面刚刚加载 (${timeSinceLoad}ms)，忽略中断消息以防止页面跳转干扰`);
+      sendResponse({ success: true, message: '页面刚加载，忽略中断消息' });
+      return true;
+    }
+    
+    // 只有在当前页面实例ID匹配或没有指定页面ID时才执行中断（兼容旧版本）
+    if (!request.pageInstanceId || request.pageInstanceId === PAGE_INSTANCE_ID) {
+      isTranslating = false; // 先中断任何正在进行的翻译
+      const result = restoreOriginalText(); // 然后恢复原文
+      isTranslating = false; // 确保标志保持为false
+      sendResponse(result);
+    } else {
+      // 请求是针对其他页面实例的，忽略
+      sendResponse({ success: true, message: '消息已忽略，不是针对当前页面实例' });
+    }
     return true;
   }
   

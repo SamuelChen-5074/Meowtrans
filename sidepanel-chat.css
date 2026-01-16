@@ -73,50 +73,6 @@
   line-height: 1.5;
 }
 
-/* 消息操作按钮区域 */
-.message-actions {
-  display: none;
-  gap: 4px;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.chat-message:hover .message-actions {
-  display: flex;
-}
-
-.copy-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 6px;
-  width: 28px;
-  height: 28px;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.chat-message.system .copy-button {
-  color: #868e96;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.copy-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  color: white;
-  transform: scale(1.1);
-}
-
-.chat-message.system .copy-button:hover {
-  background: rgba(134, 142, 150, 0.2);
-  color: #495057;
-}
-
 .message-time {
   font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.7);

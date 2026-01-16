@@ -378,20 +378,23 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
           if (tab.url && tab.id) {
             try {
               // 首先中断任何正在进行的翻译，然后恢复原文
+              // 发送页面实例ID以确保只影响正确的页面实例
               await chrome.tabs.sendMessage(tab.id, {
-                action: 'cancelAndRestore'
+                action: 'cancelAndRestore',
+                pageInstanceId: Date.now() + Math.random() // 生成临时ID用于此操作
               });
               console.log(`已向标签页 ${tab.id} 发送取消翻译并恢复原文指令`);
             } catch (error) {
               try {
-                // 如果cancelAndRestore失败，尝试直接恢复
+                // 如果cancelAndRestore失败（可能因为页面正在加载或其他原因），尝试直接恢复
                 await chrome.tabs.sendMessage(tab.id, {
                   action: 'restore'
                 });
                 console.log(`已向标签页 ${tab.id} 发送恢复原文指令`);
               } catch (secondError) {
-                // 如果标签页没有content script，则忽略错误
-                console.log(`标签页 ${tab.id} 无法接收恢复指令，可能是扩展页面或受限页面:`, secondError.message);
+                // 如果标签页没有content script（如扩展页面或受限页面），则忽略错误
+                // 也可能是因为页面正在加载或已经离开，这也属于正常情况
+                console.log(`标签页 ${tab.id} 无法接收恢复指令:`, secondError.message);
               }
             }
           }
