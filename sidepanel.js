@@ -618,9 +618,15 @@ translateModeSelectPt.addEventListener('change', () => {
 // 翻译页面开关事件监听
 const autoTranslatePageCheckbox = document.getElementById('auto-translate-page');
 if (autoTranslatePageCheckbox) {
-  autoTranslatePageCheckbox.addEventListener('change', () => {
+  autoTranslatePageCheckbox.addEventListener('change', async () => {
     // 保存当前设置到存储
-    saveCurrentSettings();
+    await saveCurrentSettings();
+
+    // 如果开关被选中，立即执行一次页面翻译
+    if (autoTranslatePageCheckbox.checked) {
+      console.log('auto-translate-page 被选中，开始执行页面翻译');
+      await executePageTranslate();
+    }
   });
 }
 
