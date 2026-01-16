@@ -249,14 +249,15 @@ const defaultSettings = {
   openaiBaseUrl: 'https://api.openai.com/v1',
   openaiOrganization: '',
   targetLang: '中文',
-  translateMode: 'selected'
+  translateMode: 'selected',
+  closeSidepanelAfterTranslate: true
 };
 
 // 加载保存的设置
 async function loadSettings() {
   const result = await chrome.storage.local.get('translateSettings');
   const settings = result.translateSettings || defaultSettings;
-  
+
   providerSelect.value = settings.provider;
   ollamaUrlInput.value = settings.ollamaUrl;
   modelNameInput.value = settings.modelName;
@@ -268,11 +269,17 @@ async function loadSettings() {
   openaiModelInput.value = settings.openaiModel || 'gpt-3.5-turbo';
   openaiBaseUrlInput.value = settings.openaiBaseUrl || 'https://api.openai.com/v1';
   openaiOrganizationInput.value = settings.openaiOrganization || '';
-  
+
   // 设置页面翻译tab的值
   targetLangSelectPt.value = settings.targetLang;
   translateModeSelectPt.value = settings.translateMode;
-  
+
+  // 设置翻译后关闭侧边栏开关
+  const closeSidepanelCheckbox = document.getElementById('close-sidepanel-after-translate');
+  if (closeSidepanelCheckbox) {
+    closeSidepanelCheckbox.checked = settings.closeSidepanelAfterTranslate !== false;
+  }
+
   // 切换显示相应的设置面板
   toggleProviderSettings(settings.provider);
 }
@@ -309,12 +316,13 @@ async function saveSettings() {
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的值
-    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的值
+    translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的值
+    closeSidepanelAfterTranslate: document.getElementById('close-sidepanel-after-translate').checked
   };
-  
+
   await chrome.storage.local.set({ translateSettings: settings });
   showStatus('设置已保存', 'success');
-  
+
   // 同步更新页面翻译tab的值（以防万一）
   targetLangSelectPt.value = settings.targetLang;
   translateModeSelectPt.value = settings.translateMode;
@@ -567,6 +575,32 @@ translateModeSelectPt.addEventListener('change', () => {
   saveCurrentSettings();
 });
 
+// 翻译后关闭侧边栏开关事件监听
+const closeSidepanelCheckbox = document.getElementById('close-sidepanel-after-translate');
+const toggleLabel = document.querySelector('.toggle-label');
+const toggleSwitch = document.querySelector('.toggle-switch');
+
+if (closeSidepanelCheckbox && toggleLabel && toggleSwitch) {
+  // 阻止 checkbox 点击事件冒泡
+  closeSidepanelCheckbox.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  // 在 label 上阻止点击事件冒泡
+  toggleLabel.addEventListener('click', (e) => {
+    // 只有点击开关区域时才允许切换
+    if (!toggleSwitch.contains(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  closeSidepanelCheckbox.addEventListener('change', () => {
+    // 保存当前设置到存储
+    saveCurrentSettings();
+  });
+}
+
 // 保存当前设置的辅助函数
 async function saveCurrentSettings() {
   const settings = {
@@ -582,19 +616,29 @@ async function saveCurrentSettings() {
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
-    translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
+    translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的翻译模式
+    closeSidepanelAfterTranslate: document.getElementById('close-sidepanel-after-translate').checked
   };
-  
+
   await chrome.storage.local.set({ translateSettings: settings });
 }
 
 
 
 // 页面翻译按钮事件监听
-translateBtnPt.addEventListener('click', () => {
+translateBtnPt.addEventListener('click', async () => {
   console.log('页面翻译按钮被点击');
-  // 立即关闭sidepanel
-  closeSidePanel();
+
+  // 获取当前设置
+  const result = await chrome.storage.local.get('translateSettings');
+  const settings = result.translateSettings || defaultSettings;
+
+  // 根据开关状态决定是否关闭sidepanel
+  if (settings.closeSidepanelAfterTranslate !== false) {
+    // 立即关闭sidepanel
+    closeSidePanel();
+  }
+
   // 然后执行页面翻译
   executePageTranslate();
 });
