@@ -83,7 +83,7 @@ async function sendTranslation() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
-    targetLang: targetLangSelect.value,
+    targetLang: currentTargetLang,
     translateMode: 'selected'
   };
 
