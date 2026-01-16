@@ -453,10 +453,6 @@ function getTextNodes(element) {
 
 // 恢复原文
 function restoreOriginalText() {
-  // 中断任何正在进行的翻译
-  isTranslating = false;
-  console.log('翻译过程已被中断，正在恢复原文');
-  
   const elements = document.querySelectorAll(`[${TRANSLATED_ATTR}]`);
   
   elements.forEach(element => {
@@ -599,6 +595,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('执行取消翻译并恢复原文');
     isTranslating = false; // 先中断任何正在进行的翻译
     const result = restoreOriginalText(); // 然后恢复原文
+    isTranslating = false; // 确保标志保持为false
     sendResponse(result);
     return true;
   }
