@@ -280,8 +280,14 @@ async function loadSettings() {
     closeSidepanelCheckbox.checked = settings.closeSidepanelAfterTranslate !== false;
   }
 
+  // 更新当前目标语言
+  currentTargetLang = settings.targetLang;
+
   // 切换显示相应的设置面板
   toggleProviderSettings(settings.provider);
+
+  // 初始化 lang-btn 图标
+  updateLangBtnIcon(settings.targetLang);
 }
 
 // 切换供应商设置面板
@@ -544,18 +550,44 @@ langDropdownItems.forEach(item => {
   item.addEventListener('click', () => {
     const lang = item.getAttribute('data-lang');
     currentTargetLang = lang;
-    
+
     // 更新选中状态
     langDropdownItems.forEach(i => i.classList.remove('selected'));
     item.classList.add('selected');
-    
+
     // 更新设置中的目标语言
     targetLangSelectPt.value = lang;
     saveCurrentSettings();
-    
+
+    // 隐藏下拉菜单
+    langDropdown.classList.remove('show');
+
+    // 更新 lang-btn 图标为语言缩写
+    updateLangBtnIcon(lang);
+
     console.log('选择语言:', lang);
   });
 });
+
+// 更新 lang-btn 图标为语言缩写
+function updateLangBtnIcon(lang) {
+  // 语言到缩写的映射
+  const langToAbbr = {
+    '中文': 'zh',
+    '粤语': '粤',
+    'English': 'en',
+    '日本語': 'jp',
+    '한국어': 'ko',
+    'Français': 'fr',
+    'Deutsch': 'de',
+    'Español': 'es'
+  };
+
+  const abbr = langToAbbr[lang] || lang;
+
+  // 更新按钮内容为语言缩写
+  langBtn.innerHTML = abbr;
+}
 
 // 点击页面其他地方时关闭下拉框
 document.addEventListener('click', (e) => {
