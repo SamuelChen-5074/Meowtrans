@@ -250,6 +250,7 @@ const defaultSettings = {
   openaiOrganization: '',
   targetLang: '中文',
   translateMode: 'selected',
+  autoTranslatePage: false,
   closeSidepanelAfterTranslate: true
 };
 
@@ -273,6 +274,12 @@ async function loadSettings() {
   // 设置页面翻译tab的值
   targetLangSelectPt.value = settings.targetLang;
   translateModeSelectPt.value = settings.translateMode;
+
+  // 设置翻译页面开关
+  const autoTranslatePageCheckbox = document.getElementById('auto-translate-page');
+  if (autoTranslatePageCheckbox) {
+    autoTranslatePageCheckbox.checked = settings.autoTranslatePage === true;
+  }
 
   // 设置翻译后关闭侧边栏开关
   const closeSidepanelCheckbox = document.getElementById('close-sidepanel-after-translate');
@@ -323,6 +330,7 @@ async function saveSettings() {
     openaiOrganization: openaiOrganizationInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的值
     translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的值
+    autoTranslatePage: document.getElementById('auto-translate-page').checked,
     closeSidepanelAfterTranslate: document.getElementById('close-sidepanel-after-translate').checked
   };
 
@@ -607,6 +615,15 @@ translateModeSelectPt.addEventListener('change', () => {
   saveCurrentSettings();
 });
 
+// 翻译页面开关事件监听
+const autoTranslatePageCheckbox = document.getElementById('auto-translate-page');
+if (autoTranslatePageCheckbox) {
+  autoTranslatePageCheckbox.addEventListener('change', () => {
+    // 保存当前设置到存储
+    saveCurrentSettings();
+  });
+}
+
 // 翻译后关闭侧边栏开关事件监听
 const closeSidepanelCheckbox = document.getElementById('close-sidepanel-after-translate');
 const toggleLabel = document.querySelector('.toggle-label');
@@ -649,6 +666,7 @@ async function saveCurrentSettings() {
     openaiOrganization: openaiOrganizationInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
     translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的翻译模式
+    autoTranslatePage: document.getElementById('auto-translate-page').checked,
     closeSidepanelAfterTranslate: document.getElementById('close-sidepanel-after-translate').checked
   };
 

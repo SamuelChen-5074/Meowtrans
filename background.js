@@ -316,10 +316,42 @@ chrome.action.onClicked.addListener(async (tab) => {
 });
 
 // 监听标签页更新
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // 当页面完全加载后，可以执行一些初始化操作
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  // 当页面完全加载后，检查是否需要自动翻译
   if (changeInfo.status === 'complete' && tab.url) {
-    // 可以在这里注入一些初始化脚本
+    // 获取保存的设置
+    const result = await chrome.storage.local.get('translateSettings');
+    const settings = result.translateSettings || {};
+
+    // 检查是否启用了自动翻译页面功能
+    if (settings.autoTranslatePage === true) {
+      console.log('自动翻译页面已启用，开始翻译:', tab.url);
+
+      try {
+        // 向content script发送翻译消息
+        await chrome.tabs.sendMessage(tabId, {
+          action: 'translate',
+          settings: {
+            provider: settings.provider || 'ollama',
+            ollamaUrl: settings.ollamaUrl || 'http://localhost:11434',
+            modelName: settings.modelName || 'qwen2:7b',
+            openrouterApiKey: settings.openrouterApiKey || '',
+            openrouterModel: settings.openrouterModel || 'anthropic/claude-3-haiku',
+            openrouterSiteUrl: settings.openrouterSiteUrl || '',
+            openrouterAppName: settings.openrouterAppName || 'Ollama 翻译插件',
+            openaiApiKey: settings.openaiApiKey || '',
+            openaiModel: settings.openaiModel || 'gpt-3.5-turbo',
+            openaiBaseUrl: settings.openaiBaseUrl || 'https://api.openai.com/v1',
+            openaiOrganization: settings.openaiOrganization || '',
+            targetLang: settings.targetLang || '中文',
+            translateMode: 'page'
+          }
+        });
+        console.log('自动翻译页面完成');
+      } catch (error) {
+        console.error('自动翻译页面失败:', error);
+      }
+    }
   }
 });
 
