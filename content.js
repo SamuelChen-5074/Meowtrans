@@ -4,12 +4,22 @@ const ORIGINAL_ATTR = 'data-ollama-original';
 
 // 用于控制翻译过程的全局变量
 let isTranslating = false;
+let translationAbortController = null; // 用于控制翻译中断
+let currentTranslationId = 0; // 用于标识当前翻译过程的唯一ID
+let lastTranslationTime = 0; // 上次翻译的时间戳
+const TRANSLATION_DEBOUNCE_MS = 500; // 防抖延迟时间（毫秒）
 
 // 页面唯一ID，用于区分不同页面加载实例
 const PAGE_INSTANCE_ID = Date.now() + Math.random();
 
 // 页面加载时间戳，用于识别页面是否刚刚加载
 const PAGE_LOAD_TIMESTAMP = Date.now();
+
+// DOM观察器，用于处理动态加载的内容
+let domObserver = null;
+
+// 是否启用动态翻译（根据设置决定）
+let enableDynamicTranslation = false;
 
 // 通过background script调用翻译API，避免CORS问题
 async function translateWithProvider(text, settings) {
@@ -258,21 +268,37 @@ async function translateBatch(texts, settings) {
 
 // 翻译整个页面（优化版：批量+并发）
 async function translatePage(settings) {
+  // 为当前翻译过程生成唯一ID
+  const thisTranslationId = ++currentTranslationId;
+  console.log(`开始翻译过程 #${thisTranslationId}`);
+  
   try {
+    // 如果已经有翻译在进行，中断之前的翻译过程
+    if (translationAbortController) {
+      console.log('检测到已有翻译进程在运行，中断之前的翻译');
+      translationAbortController.abort(); // 使用AbortController中断之前的翻译
+      // 注意：这里不立即将translationAbortController设置为null，
+      // 因为其他地方可能还在检查它的signal状态
+    }
+    
+    // 等待很短时间，确保之前的中断信号被充分处理
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // 创建新的AbortController用于当前翻译
+    translationAbortController = new AbortController();
+    
     // 设置正在翻译标志
     isTranslating = true;
     
     // 先恢复原文，确保每次翻译都是基于原文进行
     restoreOriginalText();
 
-    // 再次确认翻译标志为true（因为在restoreOriginalText()中可能被设为false）
-    isTranslating = true;
-
     // 获取所有文本节点
     const textNodes = getTextNodes(document.body);
     
     if (textNodes.length === 0) {
       isTranslating = false;
+      translationAbortController = null;
       return { success: false, error: '页面没有可翻译的文本' };
     }
     
@@ -281,10 +307,11 @@ async function translatePage(settings) {
     for (const node of textNodes) {
       const text = node.textContent.trim();
       
-      // 检查是否在翻译过程中被要求停止
-      if (!isTranslating) {
-        console.log('翻译被中断，停止处理剩余节点');
+      // 检查是否被外部信号中断或是否是当前翻译ID
+      if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+        console.log(`翻译#${thisTranslationId}被中断，停止处理剩余节点`);
         isTranslating = false;
+        translationAbortController = null;
         return { success: false, error: '翻译被中断' };
       }
       
@@ -303,6 +330,7 @@ async function translatePage(settings) {
     
     if (nodesToTranslate.length === 0) {
       isTranslating = false;
+      translationAbortController = null;
       return { success: false, error: '没有需要翻译的文本' };
     }
     
@@ -314,10 +342,11 @@ async function translatePage(settings) {
     // 分批处理
     const batches = [];
     for (let i = 0; i < nodesToTranslate.length; i += batchSize) {
-      // 检查是否在翻译过程中被要求停止
-      if (!isTranslating) {
-        console.log('翻译被中断，停止分批处理');
+      // 检查是否被外部信号中断或是否是当前翻译ID
+      if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+        console.log(`翻译#${thisTranslationId}被中断，停止分批处理`);
         isTranslating = false;
+        translationAbortController = null;
         return { success: false, error: '翻译被中断' };
       }
       batches.push(nodesToTranslate.slice(i, i + batchSize));
@@ -325,10 +354,11 @@ async function translatePage(settings) {
     
     // 并发处理批次
     for (let i = 0; i < batches.length; i += concurrency) {
-      // 检查是否在翻译过程中被要求停止
-      if (!isTranslating) {
-        console.log('翻译被中断，停止并发处理');
+      // 检查是否被外部信号中断或是否是当前翻译ID
+      if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+        console.log(`翻译#${thisTranslationId}被中断，停止并发处理`);
         isTranslating = false;
+        translationAbortController = null;
         return { success: false, error: '翻译被中断' };
       }
       
@@ -336,9 +366,9 @@ async function translatePage(settings) {
       
       const results = await Promise.allSettled(
         concurrentBatches.map(batch => {
-          // 检查是否在翻译过程中被要求停止
-          if (!isTranslating) {
-            console.log('翻译被中断，停止批次翻译');
+          // 检查是否被外部信号中断或是否是当前翻译ID
+          if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+            console.log(`翻译#${thisTranslationId}被中断，停止批次翻译`);
             return Promise.reject(new Error('翻译被中断'));
           }
           
@@ -347,10 +377,11 @@ async function translatePage(settings) {
         })
       );
       
-      // 检查是否在翻译过程中被要求停止
-      if (!isTranslating) {
-        console.log('翻译被中断，停止处理结果');
+      // 检查是否被外部信号中断或是否是当前翻译ID
+      if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+        console.log(`翻译#${thisTranslationId}被中断，停止处理结果`);
         isTranslating = false;
+        translationAbortController = null;
         return { success: false, error: '翻译被中断' };
       }
       
@@ -359,10 +390,11 @@ async function translatePage(settings) {
         const batch = concurrentBatches[j];
         const result = results[j];
         
-        // 检查是否在翻译过程中被要求停止
-        if (!isTranslating) {
-          console.log('翻译被中断，停止处理单个批次');
+        // 检查是否被外部信号中断或是否是当前翻译ID
+        if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+          console.log(`翻译#${thisTranslationId}被中断，停止处理单个批次`);
           isTranslating = false;
+          translationAbortController = null;
           return { success: false, error: '翻译被中断' };
         }
         
@@ -370,10 +402,11 @@ async function translatePage(settings) {
           const translatedTexts = result.value;
           
           for (let k = 0; k < batch.length; k++) {
-            // 检查是否在翻译过程中被要求停止
-            if (!isTranslating) {
-              console.log('翻译被中断，停止应用翻译');
+            // 检查是否被外部信号中断或是否是当前翻译ID
+            if ((translationAbortController && translationAbortController.signal.aborted) || currentTranslationId !== thisTranslationId) {
+              console.log(`翻译#${thisTranslationId}被中断，停止应用翻译`);
               isTranslating = false;
+              translationAbortController = null;
               return { success: false, error: '翻译被中断' };
             }
             
@@ -407,17 +440,32 @@ async function translatePage(settings) {
       }
     }
     
-    // 翻译完成后重置标志
-    isTranslating = false;
-    
-    return {
-      success: true,
-      message: `翻译完成：成功 ${translatedCount} 处，失败 ${failedCount} 处`
-    };
+    // 只有当这是最新的翻译ID时才完成翻译
+    if (currentTranslationId === thisTranslationId) {
+      // 翻译完成后重置标志
+      isTranslating = false;
+      translationAbortController = null;
+      
+      // 根据设置决定是否启用动态翻译监控
+      enableDynamicTranslation = true; // 启用动态翻译
+      if (settings.translateMode === 'page') {
+        startDomObserver(); // 启动DOM观察器以处理动态加载的内容
+      }
+      
+      console.log(`翻译#${thisTranslationId}完成`);
+      return {
+        success: true,
+        message: `翻译完成：成功 ${translatedCount} 处，失败 ${failedCount} 处`
+      };
+    } else {
+      console.log(`翻译#${thisTranslationId}被新翻译覆盖，提前终止`);
+      return { success: false, error: '翻译被新请求覆盖' };
+    }
   } catch (error) {
     console.error('页面翻译错误:', error);
     // 确保在任何情况下都重置翻译标志
     isTranslating = false;
+    translationAbortController = null;
     return { success: false, error: error.message };
   }
 }
@@ -580,6 +628,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       
       case 'page':
         console.log('执行页面翻译');
+        // 添加防抖逻辑，避免短时间内重复翻译
+        const now = Date.now();
+        if (now - lastTranslationTime < TRANSLATION_DEBOUNCE_MS) {
+          console.log(`翻译请求过于频繁，已忽略（间隔: ${now - lastTranslationTime}ms < ${TRANSLATION_DEBOUNCE_MS}ms）`);
+          sendResponse({ success: false, error: '翻译请求过于频繁，请稍后再试' });
+          return true;
+        }
+        
+        // 检查是否已经有翻译在进行
+        if (isTranslating) {
+          console.log('已有翻译进程在运行，忽略新的翻译请求');
+          sendResponse({ success: false, error: '已有翻译进程在运行，请等待完成' });
+          return true;
+        }
+        
+        lastTranslationTime = now;
         translatePage(settings).then(sendResponse);
         return true;
       
@@ -613,9 +677,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     // 只有在当前页面实例ID匹配或没有指定页面ID时才执行中断（兼容旧版本）
     if (!request.pageInstanceId || request.pageInstanceId === PAGE_INSTANCE_ID) {
-      isTranslating = false; // 先中断任何正在进行的翻译
+      if (translationAbortController) {
+        translationAbortController.abort(); // 使用AbortController中断任何正在进行的翻译
+      }
+      isTranslating = false; // 同时设置标志为false
       const result = restoreOriginalText(); // 然后恢复原文
-      isTranslating = false; // 确保标志保持为false
       sendResponse(result);
     } else {
       // 请求是针对其他页面实例的，忽略
@@ -626,6 +692,147 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   console.log('消息处理完成');
 });
+
+// 启动DOM观察器以处理动态加载的内容
+function startDomObserver() {
+  // 如果已有观察器在运行，先停止它
+  if (domObserver) {
+    domObserver.disconnect();
+  }
+
+  // 配置观察选项
+  const config = {
+    childList: true,      // 观察子节点的变化
+    subtree: true,        // 观察所有后代节点
+    attributes: false,    // 不观察属性变化
+    characterData: true   // 观察文本节点的变化
+  };
+
+  // 创建观察器实例
+  domObserver = new MutationObserver(function(mutations) {
+    let shouldTranslateNewContent = false;
+    
+    // 检查所有变更
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        // 检查新增的节点
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            // 检查文本节点内容是否需要翻译
+            if (node.textContent && node.textContent.trim().length > 1) {
+              // 检查父元素是否已经被翻译过
+              if (!node.parentElement.hasAttribute(TRANSLATED_ATTR) && 
+                  node.parentElement.tagName !== 'SCRIPT' &&
+                  node.parentElement.tagName !== 'STYLE' &&
+                  node.parentElement.tagName !== 'NOSCRIPT') {
+                shouldTranslateNewContent = true;
+                break;
+              }
+            }
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // 检查新元素内的文本节点
+            const textNodes = getTextNodes(node);
+            if (textNodes.length > 0) {
+              shouldTranslateNewContent = true;
+              break;
+            }
+          }
+        }
+      } else if (mutation.type === 'characterData') {
+        // 文本节点内容发生变化
+        if (mutation.target.textContent && mutation.target.textContent.trim().length > 1) {
+          if (!mutation.target.parentElement.hasAttribute(TRANSLATED_ATTR)) {
+            shouldTranslateNewContent = true;
+          }
+        }
+      }
+      
+      if (shouldTranslateNewContent) break;
+    }
+
+    if (shouldTranslateNewContent) {
+      // 防抖处理，避免频繁触发
+      if (window.translationDebounceTimer) {
+        clearTimeout(window.translationDebounceTimer);
+      }
+
+      window.translationDebounceTimer = setTimeout(async () => {
+        // 检查是否已经有翻译在进行
+        if (isTranslating) {
+          console.log('已有翻译进程在运行，跳过动态内容翻译');
+          return;
+        }
+
+        console.log('检测到新的文本内容，开始翻译');
+        await translateNewContent();
+      }, 500); // 0.5秒防抖延迟
+    }
+  });
+
+  // 开始观察
+  domObserver.observe(document.body, config);
+  console.log('DOM观察器已启动，开始监控动态内容');
+}
+
+// 翻译新出现的内容
+async function translateNewContent() {
+  console.log('开始翻译新出现的内容');
+
+  // 获取尚未翻译的文本节点
+  const textNodes = getTextNodes(document.body);
+  const nodesToTranslate = [];
+
+  for (const node of textNodes) {
+    const text = node.textContent.trim();
+
+    // 检查是否需要翻译
+    if (text.length >= 2 && 
+        !node.parentElement.hasAttribute(TRANSLATED_ATTR) &&
+        node.parentElement.tagName !== 'SCRIPT' &&
+        node.parentElement.tagName !== 'STYLE' &&
+        node.parentElement.tagName !== 'NOSCRIPT') {
+      nodesToTranslate.push({ node, text });
+    }
+  }
+
+  if (nodesToTranslate.length === 0) {
+    console.log('没有发现新的可翻译内容');
+    return;
+  }
+
+  console.log(`发现 ${nodesToTranslate.length} 个新的文本节点需要翻译`);
+
+  // 获取当前的翻译设置
+  try {
+    const result = await chrome.storage.local.get('translateSettings');
+    const settings = result.translateSettings || {
+      provider: 'ollama',
+      ollamaUrl: 'http://localhost:11434',
+      modelName: 'qwen2:7b',
+      targetLang: '中文'
+    };
+
+    // 翻译新内容
+    for (const { node, text } of nodesToTranslate) {
+      try {
+        // 翻译文本
+        const translatedText = await translateWithProvider(text, settings);
+
+        // 保存原文并替换为译文
+        const parent = node.parentElement;
+        parent.setAttribute(ORIGINAL_ATTR, text);
+        parent.setAttribute(TRANSLATED_ATTR, 'true');
+        node.textContent = translatedText;
+
+        console.log(`翻译新内容: "${text.substring(0, 20)}..." -> "${translatedText.substring(0, 20)}..."`);
+      } catch (error) {
+        console.error('翻译单个节点失败:', error);
+      }
+    }
+  } catch (storageError) {
+    console.error('获取翻译设置失败:', storageError);
+  }
+}
 
 // 添加右键菜单（需要background.js支持）
 chrome.runtime.sendMessage({ action: 'createContextMenu' });
