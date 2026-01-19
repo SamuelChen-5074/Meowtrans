@@ -318,8 +318,29 @@ async function translatePage(settings) {
             
             try {
               // 检查节点是否仍然存在且有效
-              if (!node || !node.parentElement) {
-                console.warn('节点已被移除，跳过翻译');
+              if (!node || !node.parentNode || !node.parentElement) {
+                console.warn('节点已被移除或无效，跳过翻译');
+                failedCount++;
+                continue;
+              }
+              
+              // 再次验证父元素是否仍然存在于DOM中
+              if (!document.contains(node.parentElement)) {
+                console.warn('父元素不在DOM中，跳过翻译');
+                failedCount++;
+                continue;
+              }
+              
+              // 检查节点内容是否已经改变（可能被其他脚本修改）
+              if (node.textContent.trim() !== text) {
+                console.warn('节点内容已改变，跳过翻译');
+                failedCount++;
+                continue;
+              }
+              
+              // 检查父元素是否已被翻译（可能是并发操作导致）
+              if (node.parentElement.hasAttribute(TRANSLATED_ATTR)) {
+                console.warn('父元素已被翻译，跳过重复翻译');
                 failedCount++;
                 continue;
               }
