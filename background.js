@@ -319,6 +319,8 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // 当页面完全加载后，检查是否需要自动翻译
   if (changeInfo.status === 'complete' && tab.url) {
+    console.log('页面加载完成:', tab.url);
+    
     // 获取保存的设置
     const result = await chrome.storage.local.get('translateSettings');
     const settings = result.translateSettings || {};
@@ -350,6 +352,35 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         console.log('自动翻译页面完成');
       } catch (error) {
         console.error('自动翻译页面失败:', error);
+        
+        // 如果是因为content script未加载，等待一段时间后重试
+        if (error.message.includes('Could not establish connection')) {
+          setTimeout(async () => {
+            try {
+              await chrome.tabs.sendMessage(tabId, {
+                action: 'translate',
+                settings: {
+                  provider: settings.provider || 'ollama',
+                  ollamaUrl: settings.ollamaUrl || 'http://localhost:11434',
+                  modelName: settings.modelName || 'qwen2:7b',
+                  openrouterApiKey: settings.openrouterApiKey || '',
+                  openrouterModel: settings.openrouterModel || 'anthropic/claude-3-haiku',
+                  openrouterSiteUrl: settings.openrouterSiteUrl || '',
+                  openrouterAppName: settings.openrouterAppName || 'Ollama 翻译插件',
+                  openaiApiKey: settings.openaiApiKey || '',
+                  openaiModel: settings.openaiModel || 'gpt-3.5-turbo',
+                  openaiBaseUrl: settings.openaiBaseUrl || 'https://api.openai.com/v1',
+                  openaiOrganization: settings.openaiOrganization || '',
+                  targetLang: settings.targetLang || '中文',
+                  translateMode: 'page'
+                }
+              });
+              console.log('自动翻译页面重试成功');
+            } catch (retryError) {
+              console.error('自动翻译页面重试失败:', retryError);
+            }
+          }, 1000);
+        }
       }
     }
   }
