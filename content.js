@@ -265,11 +265,6 @@ async function translatePage(settings) {
     for (const node of textNodes) {
       const text = node.textContent.trim();
       
-      // 跳过已翻译的节点
-      if (node.parentElement.hasAttribute(TRANSLATED_ATTR)) {
-        continue;
-      }
-      
       // 跳过太短的文本
       if (text.length < 2) {
         continue;
@@ -338,14 +333,7 @@ async function translatePage(settings) {
                 continue;
               }
               
-              // 检查父元素是否已被翻译（可能是并发操作导致）
-              if (node.parentElement.hasAttribute(TRANSLATED_ATTR)) {
-                console.warn('父元素已被翻译，跳过重复翻译');
-                failedCount++;
-                continue;
-              }
-              
-              // 保存原文并替换为译文
+              // 保存原文并替换为译文（移除了重复翻译检查，让每个节点都能被处理）
               const parent = node.parentElement;
               parent.setAttribute(ORIGINAL_ATTR, text);
               parent.setAttribute(TRANSLATED_ATTR, 'true');
@@ -382,15 +370,68 @@ function getTextNodes(element) {
     NodeFilter.SHOW_TEXT,
     {
       acceptNode: function(node) {
-        // 跳过script、style等标签内的文本
-        if (node.parentElement.tagName === 'SCRIPT' ||
-            node.parentElement.tagName === 'STYLE' ||
-            node.parentElement.tagName === 'NOSCRIPT') {
+        // 检查节点是否存在有效的父元素
+        if (!node.parentElement) {
           return NodeFilter.FILTER_REJECT;
         }
         
+        const parentTag = node.parentElement.tagName || '';
+        const parentClass = typeof node.parentElement.className === 'string' ? node.parentElement.className : '';
+        const parentId = typeof node.parentElement.id === 'string' ? node.parentElement.id : '';
+        const text = node.textContent.trim();
+        
+        // 跳过script、style、code等标签内的文本
+        if (parentTag === 'SCRIPT' ||
+            parentTag === 'STYLE' ||
+            parentTag === 'NOSCRIPT' ||
+            parentTag === 'CODE' ||
+            parentTag === 'PRE' ||
+            parentTag === 'KBD' ||
+            parentTag === 'SAMP' ||
+            parentTag === 'VAR' ||
+            parentTag === 'TT' ||
+            parentTag === 'BLOCKQUOTE') {
+          return NodeFilter.FILTER_REJECT;
+        }
+        
+        // 检查祖先元素是否是pre或code标签（处理嵌套情况）
+        let ancestor = node.parentElement;
+        while (ancestor) {
+          const ancestorTag = ancestor.tagName || '';
+          if (ancestorTag === 'PRE' || ancestorTag === 'CODE') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          ancestor = ancestor.parentElement;
+        }
+        
+        // 跳过具有代码相关class的元素
+        const codeRelatedClasses = ['code', 'Code', 'code-block', 'code-block', 'highlight', 'highlighted', 'language-', 'lang-', 'hljs', 'brush:', 'prettyprint', 'syntax'];
+        if (codeRelatedClasses.some(cls => 
+          parentClass.toLowerCase().includes(cls.toLowerCase()) || parentId.toLowerCase().includes(cls.toLowerCase())
+        )) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        
+        // 跳过具有代码相关属性的元素
+        if (node.parentElement.hasAttribute('data-language') ||
+            node.parentElement.hasAttribute('data-lang') ||
+            node.parentElement.hasAttribute('data-code') ||
+            node.parentElement.hasAttribute('data-highlight')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        
+        // 跳过可能包含代码的元素（如果文本中包含大量特殊字符）
+        // 但是要更谨慎，避免误判普通文本
+        if (text.length > 20) { // 增加最小长度要求
+          const specialCharRatio = (text.match(/[^a-zA-Z\u4e00-\u9fff\s\d.,!?;:'"()-]/g) || []).length / text.length;
+          // 只有当特殊字符（排除常用标点符号）比例超过40%时才认为是代码
+          if (specialCharRatio > 0.4) {
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+        
         // 只保留包含非空白字符的文本节点
-        if (node.textContent.trim().length > 0) {
+        if (text.length > 1) { // 至少2个字符才考虑翻译
           return NodeFilter.FILTER_ACCEPT;
         }
         
@@ -535,7 +576,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       
       case 'page':
         console.log('执行页面翻译');
-        translatePage(settings).then(sendResponse);
+        // 对于页面翻译，等待DOM完全加载和稳定后再执行
+        if (document.readyState === 'loading' || document.readyState === 'interactive') {
+          // 如果DOM还在加载中，等待complete状态
+          document.addEventListener('DOMContentLoaded', () => {
+            // 添加短暂延迟确保所有内容都已渲染
+            setTimeout(() => {
+              translatePage(settings).then(sendResponse);
+            }, 1000);
+          });
+        } else {
+          // DOM已经加载完成，但仍添加短暂延迟确保动态内容加载
+          setTimeout(() => {
+            translatePage(settings).then(sendResponse);
+          }, 1000);
+        }
         return true;
       
       case 'hover':
