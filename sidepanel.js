@@ -512,9 +512,29 @@ async function executePageTranslate() {
   } catch (error) {
     console.error('页面翻译错误:', error);
     
-    // 如果是"Receiving end does not exist"错误，提示用户刷新页面
-    if (error.message.includes('Receiving end does not exist')) {
-      showStatusPt('错误: 请刷新当前页面后再试', 'error');
+    // 如果是连接错误，尝试延迟重试
+    if (error.message.includes('Receiving end does not exist') || error.message.includes('Could not establish connection')) {
+      console.log('初次连接失败，等待1秒后重试...');
+      showStatusPt('初次连接失败，正在重试...', 'info');
+      
+      setTimeout(async () => {
+        try {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          const response = await chrome.tabs.sendMessage(tab.id, {
+            action: 'translate',
+            settings: settings
+          });
+          
+          if (response.success) {
+            showStatusPt('翻译完成', 'success');
+          } else {
+            throw new Error(response.error || '翻译失败');
+          }
+        } catch (retryError) {
+          console.error('重试失败:', retryError);
+          showStatusPt(`错误: ${retryError.message}`, 'error');
+        }
+      }, 1000);
     } else {
       showStatusPt(`错误: ${error.message}`, 'error');
     }

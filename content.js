@@ -493,6 +493,11 @@ function showHoverTooltip(element, translatedText) {
   hoverPopup.style.left = left + 'px';
 }
 
+// 页面加载完成后初始化翻译功能
+function initializeTranslation() {
+  console.log('翻译功能初始化完成');
+}
+
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('收到消息:', request);
@@ -530,6 +535,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   console.log('消息处理完成');
 });
+
+// 确保页面加载完成后初始化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeTranslation);
+} else {
+  initializeTranslation();
+}
 
 // 添加右键菜单（需要background.js支持）
 chrome.runtime.sendMessage({ action: 'createContextMenu' });
