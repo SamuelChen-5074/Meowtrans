@@ -378,6 +378,7 @@ function getTextNodes(element) {
         const parentTag = node.parentElement.tagName || '';
         const parentClass = typeof node.parentElement.className === 'string' ? node.parentElement.className : '';
         const parentId = typeof node.parentElement.id === 'string' ? node.parentElement.id : '';
+        const parentAttributes = Array.from(node.parentElement.attributes).map(attr => attr.name);
         const text = node.textContent.trim();
         
         // 跳过script、style、code等标签内的文本
@@ -394,7 +395,7 @@ function getTextNodes(element) {
           return NodeFilter.FILTER_REJECT;
         }
         
-        // 检查祖先元素是否是pre或code标签（处理嵌套情况）
+        // 检查祖先元素是否是代码相关标签（处理嵌套情况）
         let ancestor = node.parentElement;
         while (ancestor) {
           const ancestorTag = ancestor.tagName || '';
@@ -404,8 +405,14 @@ function getTextNodes(element) {
           ancestor = ancestor.parentElement;
         }
         
+        // 跳过具有代码相关tag的元素（包括自定义代码编辑器标签）
+        const codeRelatedTags = ['CFC-CODE-SNIPPET', 'CFC-CODE-EDITOR', 'MONACO-EDITOR', 'CODEMIRROR', 'ACE_EDITOR', 'PRISM-TOKEN'];
+        if (codeRelatedTags.includes(parentTag.toUpperCase())) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        
         // 跳过具有代码相关class的元素
-        const codeRelatedClasses = ['code', 'Code', 'code-block', 'code-block', 'highlight', 'highlighted', 'language-', 'lang-', 'hljs', 'brush:', 'prettyprint', 'syntax'];
+        const codeRelatedClasses = ['code', 'Code', 'code-block', 'code-block', 'highlight', 'highlighted', 'language-', 'lang-', 'hljs', 'brush:', 'prettyprint', 'syntax', 'monaco', 'ace_', 'cm-', 'prism-', 'token', 'mtk', 'view-line', 'cfc-code', 'mat-', 'mdc-', 'monaco-editor', 'cfc-code-editor'];
         if (codeRelatedClasses.some(cls => 
           parentClass.toLowerCase().includes(cls.toLowerCase()) || parentId.toLowerCase().includes(cls.toLowerCase())
         )) {
@@ -413,10 +420,14 @@ function getTextNodes(element) {
         }
         
         // 跳过具有代码相关属性的元素
-        if (node.parentElement.hasAttribute('data-language') ||
+        if (parentAttributes.some(attr => 
+          ['data-language', 'data-lang', 'data-code', 'data-highlight', 'data-mprt', 'role="code"', 'data-uri'].includes(attr.toLowerCase())
+        ) || node.parentElement.hasAttribute('data-language') ||
             node.parentElement.hasAttribute('data-lang') ||
             node.parentElement.hasAttribute('data-code') ||
-            node.parentElement.hasAttribute('data-highlight')) {
+            node.parentElement.hasAttribute('data-highlight') ||
+            (node.parentElement.getAttribute('role') === 'code') ||
+            (node.parentElement.getAttribute('data-uri') && node.parentElement.getAttribute('data-uri').includes('inmemory'))) {
           return NodeFilter.FILTER_REJECT;
         }
         
