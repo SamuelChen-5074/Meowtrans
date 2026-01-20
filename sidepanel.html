@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Translate</title>
+  <title>MeowTrans</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="sidepanel.css">
 </head>
@@ -21,8 +21,7 @@
       </button>
       <button class="tab-item" data-tab="pagetranslate">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
         </svg>
       </button>
       <button class="tab-item" data-tab="settings">
@@ -43,62 +42,67 @@
     <div class="content-area">
       <div class="container">
         <!-- 聊天页面 -->
-                <div id="page-chat" class="page-content active">
-                  
-                  <!-- 聊天消息区域 -->
-                  <div id="chat-messages" class="chat-messages">
-                    <div class="welcome-message">
-                      <div class="welcome-icon">✨</div>
-                      <h3>欢迎使用AI翻译助手</h3>
-                      <p>在这里输入您需要翻译的内容，我将为您提供高质量的翻译服务</p>
-                    </div>
-                    <div class="chat-message system">
-                      <div class="message-content">
-                        请输入要翻译的文字，我将使用当前设置进行翻译。
-                      </div>
-                      <div class="message-time"></div>
-                    </div>
-                  </div>
-        
-                  <!-- 输入区域 -->
-                  <div class="chat-input-area">
-                    <div class="input-wrapper">
-                      <textarea id="chat-input" placeholder="输入要翻译的文字..." rows="1"></textarea>
-                      <div class="button-group">
-                        <button id="lang-btn" class="lang-button" title="选择目标语言">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </button>
-                        
-                        <!-- 语言选择下拉菜单 -->
-                        <div id="lang-dropdown" class="lang-dropdown">
-                          <div class="lang-dropdown-item" data-lang="中文">中文</div>
-                          <div class="lang-dropdown-item" data-lang="粤语">粤语</div>
-                          <div class="lang-dropdown-item" data-lang="English">English</div>
-                          <div class="lang-dropdown-item" data-lang="日本語">日本語</div>
-                          <div class="lang-dropdown-item" data-lang="한국어">한국어</div>
-                          <div class="lang-dropdown-item" data-lang="Français">Français</div>
-                          <div class="lang-dropdown-item" data-lang="Deutsch">Deutsch</div>
-                          <div class="lang-dropdown-item" data-lang="Español">Español</div>
-                        </div>
-                        <button id="clear-btn" class="clear-button" title="清空对话">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </button>
-                        <button id="send-btn" class="send-button" title="发送翻译请求">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-        
-                  <!-- 翻译状态 -->
-                  <div id="translate-status" class="status"></div>
+        <div id="page-chat" class="page-content active">
+
+          <!-- 聊天消息区域 -->
+          <div id="chat-messages" class="chat-messages">
+            <div class="welcome-message">
+              <div class="welcome-icon">✨</div>
+              <h3>欢迎使用MeowTrans助手</h3>
+              <p>在这里输入您需要翻译的内容，我将为您提供高质量的翻译服务</p>
+            </div>
+            <div class="chat-message system">
+              <div class="message-content">
+                请输入要翻译的文字，我将使用当前设置进行翻译。
+              </div>
+              <div class="message-time"></div>
+            </div>
+          </div>
+
+          <!-- 输入区域 -->
+          <div class="chat-input-area">
+            <div class="input-wrapper">
+              <textarea id="chat-input" placeholder="输入要翻译的文字..." rows="1"></textarea>
+              <div class="button-group">
+                <button id="lang-btn" class="lang-button" title="选择目标语言">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+
+                <!-- 语言选择下拉菜单 -->
+                <div id="lang-dropdown" class="lang-dropdown">
+                  <div class="lang-dropdown-item" data-lang="中文">中文</div>
+                  <div class="lang-dropdown-item" data-lang="粤语">粤语</div>
+                  <div class="lang-dropdown-item" data-lang="English">English</div>
+                  <div class="lang-dropdown-item" data-lang="日本語">日本語</div>
+                  <div class="lang-dropdown-item" data-lang="한국어">한국어</div>
+                  <div class="lang-dropdown-item" data-lang="Français">Français</div>
+                  <div class="lang-dropdown-item" data-lang="Deutsch">Deutsch</div>
+                  <div class="lang-dropdown-item" data-lang="Español">Español</div>
                 </div>
+                <button id="clear-btn" class="clear-button" title="清空对话">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                <button id="send-btn" class="send-button" title="发送翻译请求">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 翻译状态 -->
+          <div id="translate-status" class="status"></div>
+        </div>
 
         <!-- 页面翻译页面 -->
         <div id="page-pagetranslate" class="page-content">
@@ -157,7 +161,7 @@
           </div>
 
           <div id="status-pt" class="status"></div>
-          
+
           <div class="info-section">
             <div class="info-text">
               <p>💡 提示：点击翻译按钮后，插件会根据当前选择的目标语言和翻译模式对页面进行翻译。</p>
@@ -261,127 +265,135 @@
             <!-- 搜索框 -->
             <div class="help-search">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                <path
+                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
               </svg>
               <input type="text" placeholder="搜索帮助内容..." id="help-search-input">
             </div>
 
             <div class="help-content">
-            <!-- 快速开始卡片 -->
-            <div class="help-card">
-              <div class="help-card-title">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/>
-                </svg>
-                快速开始
-              </div>
-              <div class="help-card-content">
-                <p>欢迎使用AI翻译插件！按照以下简单步骤即可开始使用：</p>
-                <ul>
-                  <li>在设置页面配置API供应商</li>
-                  <li>选择翻译模式（选中文字/整个页面/悬停翻译）</li>
-                  <li>点击翻译按钮开始翻译</li>
-                </ul>
-                <div class="help-tags">
-                  <span class="help-tag">新手入门</span>
-                  <span class="help-tag">快速配置</span>
-                  <span class="help-tag">3步上手</span>
+              <!-- 快速开始卡片 -->
+              <div class="help-card">
+                <div class="help-card-title">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z" />
+                  </svg>
+                  快速开始
+                </div>
+                <div class="help-card-content">
+                  <p>欢迎使用MeowTrans插件！按照以下简单步骤即可开始使用：</p>
+                  <ul>
+                    <li>在设置页面配置API供应商</li>
+                    <li>选择翻译模式（选中文字/整个页面/悬停翻译）</li>
+                    <li>点击翻译按钮开始翻译</li>
+                  </ul>
+                  <div class="help-tags">
+                    <span class="help-tag">新手入门</span>
+                    <span class="help-tag">快速配置</span>
+                    <span class="help-tag">3步上手</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 使用说明卡片 -->
-            <div class="help-card">
-              <div class="help-card-title">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                使用说明
-              </div>
-              <div class="help-card-content">
-                <p>选择API供应商并配置相应参数：</p>
-                <ul>
-                  <li><strong>Ollama本地服务</strong>：需要本地运行Ollama，无需API Key</li>
-                  <li><strong>OpenRouter云端服务</strong>：需要API Key，支持多种模型</li>
-                  <li><strong>OpenAI官方/兼容</strong>：需要API Key，支持OpenAI兼容接口</li>
-                </ul>
-                <p>配置完成后，选择目标语言和翻译模式即可开始翻译。</p>
-                <div class="help-tags">
-                  <span class="help-tag">API配置</span>
-                  <span class="help-tag">供应商选择</span>
+              <!-- 使用说明卡片 -->
+              <div class="help-card">
+                <div class="help-card-title">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                  </svg>
+                  使用说明
+                </div>
+                <div class="help-card-content">
+                  <p>选择API供应商并配置相应参数：</p>
+                  <ul>
+                    <li><strong>Ollama本地服务</strong>：需要本地运行Ollama，无需API Key</li>
+                    <li><strong>OpenRouter云端服务</strong>：需要API Key，支持多种模型</li>
+                    <li><strong>OpenAI官方/兼容</strong>：需要API Key，支持OpenAI兼容接口</li>
+                  </ul>
+                  <p>配置完成后，选择目标语言和翻译模式即可开始翻译。</p>
+                  <div class="help-tags">
+                    <span class="help-tag">API配置</span>
+                    <span class="help-tag">供应商选择</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- OpenRouter说明卡片 -->
-            <div class="help-card provider-card">
-              <div class="help-card-title">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/>
-                </svg>
-                OpenRouter 云端服务
-              </div>
-              <div class="help-card-content">
-                <p>OpenRouter是一个云端AI服务提供商，具有以下特点：</p>
-                <ul>
-                  <li>获取API Key: 访问 <a href="https://openrouter.ai/keys" target="_blank">https://openrouter.ai/keys</a></li>
-                  <li>支持多种模型: Claude、GPT、Llama等</li>
-                  <li>按使用量付费，无需本地部署</li>
-                  <li>提供统一的API接口，方便集成</li>
-                </ul>
-                <div class="help-tags">
-                  <span class="help-tag">云端服务</span>
-                  <span class="help-tag">多模型支持</span>
+              <!-- OpenRouter说明卡片 -->
+              <div class="help-card provider-card">
+                <div class="help-card-title">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z" />
+                  </svg>
+                  OpenRouter 云端服务
+                </div>
+                <div class="help-card-content">
+                  <p>OpenRouter是一个云端AI服务提供商，具有以下特点：</p>
+                  <ul>
+                    <li>获取API Key: 访问 <a href="https://openrouter.ai/keys"
+                        target="_blank">https://openrouter.ai/keys</a></li>
+                    <li>支持多种模型: Claude、GPT、Llama等</li>
+                    <li>按使用量付费，无需本地部署</li>
+                    <li>提供统一的API接口，方便集成</li>
+                  </ul>
+                  <div class="help-tags">
+                    <span class="help-tag">云端服务</span>
+                    <span class="help-tag">多模型支持</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- OpenAI说明卡片 -->
-            <div class="help-card provider-card">
-              <div class="help-card-title">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                OpenAI 官方/兼容服务
-              </div>
-              <div class="help-card-content">
-                <p>支持OpenAI官方服务及兼容接口：</p>
-                <ul>
-                  <li>获取API Key: 访问 <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a></li>
-                  <li>支持OpenAI官方模型: GPT-3.5、GPT-4等</li>
-                  <li>支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）</li>
-                  <li>自定义API基础URL可连接任何OpenAI兼容的服务</li>
-                </ul>
-                <div class="help-tags">
-                  <span class="help-tag">官方服务</span>
-                  <span class="help-tag">兼容接口</span>
+              <!-- OpenAI说明卡片 -->
+              <div class="help-card provider-card">
+                <div class="help-card-title">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  OpenAI 官方/兼容服务
+                </div>
+                <div class="help-card-content">
+                  <p>支持OpenAI官方服务及兼容接口：</p>
+                  <ul>
+                    <li>获取API Key: 访问 <a href="https://platform.openai.com/api-keys"
+                        target="_blank">https://platform.openai.com/api-keys</a></li>
+                    <li>支持OpenAI官方模型: GPT-3.5、GPT-4等</li>
+                    <li>支持OpenAI兼容接口（如Azure OpenAI、本地部署的vLLM等）</li>
+                    <li>自定义API基础URL可连接任何OpenAI兼容的服务</li>
+                  </ul>
+                  <div class="help-tags">
+                    <span class="help-tag">官方服务</span>
+                    <span class="help-tag">兼容接口</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 常见问题卡片 -->
-            <div class="help-card faq-card">
-              <div class="help-card-title">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
-                </svg>
-                常见问题
-              </div>
-              <div class="help-card-content">
-                <p>遇到问题？查看以下常见解答：</p>
-                <ul>
-                  <li><strong>Ollama连接失败</strong>：请确保Ollama服务正在运行，并检查服务地址配置是否正确</li>
-                  <li><strong>OpenRouter/OpenAI无法使用</strong>：需要有效的API Key，请检查API Key是否正确</li>
-                  <li><strong>翻译速度慢</strong>：检查网络连接，或尝试切换到其他API供应商</li>
-                  <li><strong>翻译结果不准确</strong>：尝试更换不同的模型或调整目标语言设置</li>
-                </ul>
-                <div class="help-tags">
-                  <span class="help-tag">故障排查</span>
-                  <span class="help-tag">问题解答</span>
+              <!-- 常见问题卡片 -->
+              <div class="help-card faq-card">
+                <div class="help-card-title">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                  </svg>
+                  常见问题
+                </div>
+                <div class="help-card-content">
+                  <p>遇到问题？查看以下常见解答：</p>
+                  <ul>
+                    <li><strong>Ollama连接失败</strong>：请确保Ollama服务正在运行，并检查服务地址配置是否正确</li>
+                    <li><strong>OpenRouter/OpenAI无法使用</strong>：需要有效的API Key，请检查API Key是否正确</li>
+                    <li><strong>翻译速度慢</strong>：检查网络连接，或尝试切换到其他API供应商</li>
+                    <li><strong>翻译结果不准确</strong>：尝试更换不同的模型或调整目标语言设置</li>
+                  </ul>
+                  <div class="help-tags">
+                    <span class="help-tag">故障排查</span>
+                    <span class="help-tag">问题解答</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
