@@ -849,6 +849,15 @@ translateBtnPt.addEventListener('click', async () => {
   executePageTranslate();
 });
 
+// 恢复原文按钮事件监听
+const restoreBtnPt = document.getElementById('restore-btn-pt');
+if (restoreBtnPt) {
+  restoreBtnPt.addEventListener('click', async () => {
+    console.log('恢复原文按钮被点击');
+    await restoreOriginalText();
+  });
+}
+
 // 关闭sidepanel的函数
 async function closeSidePanel() {
   try {
