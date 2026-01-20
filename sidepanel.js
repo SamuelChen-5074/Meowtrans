@@ -694,12 +694,90 @@ if (autoTranslatePageCheckbox) {
     // 保存当前设置到存储
     await saveCurrentSettings();
 
-    // 如果开关被选中，立即执行一次页面翻译
     if (autoTranslatePageCheckbox.checked) {
       console.log('auto-translate-page 被选中，开始执行页面翻译');
       await executePageTranslate();
+    } else {
+      console.log('auto-translate-page 被取消选中，开始恢复原文');
+      // 开关关闭时，恢复原文
+      await restoreOriginalText();
     }
   });
+}
+
+// 恢复原文函数
+async function restoreOriginalText() {
+  try {
+    // 获取当前标签页
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (!tab) {
+      throw new Error('无法获取当前标签页');
+    }
+    
+    console.log('发送恢复原文消息到标签页:', tab.id);
+    
+    // 向content script发送恢复原文消息
+    // 对于恢复原文操作，我们不需要等待响应，只需发送消息即可
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'restore'
+    }, (response) => {
+      // 使用回调方式处理响应（可选，因为我们主要关心消息是否发送成功）
+      if (chrome.runtime.lastError) {
+        console.error('恢复原文错误:', chrome.runtime.lastError);
+        const errorMessage = chrome.runtime.lastError.message || chrome.runtime.lastError.toString() || '未知错误';
+        
+        // 对于恢复原文，即使有通信错误，我们也认为操作已发出
+        // 因为content script会在接收到消息时执行恢复操作
+        if (errorMessage.includes('The message port closed before a response was received')) {
+          // 这种情况下，消息可能已经发送成功，只是响应端口关闭了
+          showStatusPt('原文恢复指令已发送', 'success');
+        } else if (errorMessage.includes('Receiving end does not exist') || 
+                   errorMessage.includes('Could not establish connection')) {
+          console.log('初次连接失败，等待1秒后重试...');
+          showStatusPt('初次连接失败，正在重试...', 'info');
+          
+          setTimeout(async () => {
+            try {
+              const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+              chrome.tabs.sendMessage(tab.id, {
+                action: 'restore'
+              }, (retryResponse) => {
+                if (chrome.runtime.lastError) {
+                  console.error('重试失败:', chrome.runtime.lastError);
+                  const retryErrorMessage = chrome.runtime.lastError.message || chrome.runtime.lastError.toString() || '未知错误';
+                  if (retryErrorMessage.includes('The message port closed before a response was received')) {
+                    showStatusPt('原文恢复指令已发送', 'success');
+                  } else {
+                    showStatusPt(`错误: ${retryErrorMessage}`, 'error');
+                  }
+                } else if (retryResponse && retryResponse.success) {
+                  showStatusPt('原文已恢复', 'success');
+                } else {
+                  const errorMsg = (retryResponse && retryResponse.error) || '恢复原文失败';
+                  showStatusPt(`错误: ${errorMsg}`, 'error');
+                }
+              });
+            } catch (retryError) {
+              console.error('重试失败:', retryError);
+              showStatusPt(`错误: ${retryError.message}`, 'error');
+            }
+          }, 1000);
+        } else {
+          showStatusPt(`错误: ${errorMessage}`, 'error');
+        }
+      } else if (response && response.success) {
+        showStatusPt('原文已恢复', 'success');
+      } else {
+        // 即使响应不包含success字段，我们也认为操作已完成
+        showStatusPt('原文恢复指令已发送', 'success');
+      }
+    });
+    
+  } catch (error) {
+    console.error('恢复原文错误:', error);
+    showStatusPt(`错误: ${error.message}`, 'error');
+  }
 }
 
 // 翻译后关闭侧边栏开关事件监听

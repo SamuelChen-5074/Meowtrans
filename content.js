@@ -618,6 +618,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('执行恢复原文');
     restoreOriginalText().then(sendResponse);
     return true;
+  } else if (request.action === 'cancelAndRestore') {
+    console.log('执行取消翻译并恢复原文');
+    // 首先清除任何正在进行的翻译操作，然后恢复原文
+    restoreOriginalText().then(sendResponse);
+    return true;
+  } else if (request.action === 'check_translated_status') {
+    // 检查页面是否已经被翻译
+    const translatedElements = document.querySelectorAll(`[${TRANSLATED_ATTR}]`);
+    sendResponse({ 
+      success: true, 
+      isTranslated: translatedElements.length > 0,
+      translatedCount: translatedElements.length 
+    });
+    return true;
   }
   
   console.log('消息处理完成');
