@@ -22,7 +22,7 @@ let currentTargetLang = '中文';
    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
    
    messageDiv.innerHTML = `
-     <div class="message-content">${escapeHtml(content)}</div>
+     <div class="message-content">${escapeHtmlWithLineBreaks(content)}</div>
      <div class="message-time">${timeString}</div>
    `;
    chatMessages.appendChild(messageDiv);
@@ -34,6 +34,14 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// HTML转义函数（保留换行符）
+function escapeHtmlWithLineBreaks(text) {
+  // 先进行HTML转义
+  let escaped = escapeHtml(text);
+  // 将换行符替换为<br>标签
+  return escaped.replace(/\n/g, '<br>');
 }
 
 // 添加打字指示器
@@ -151,6 +159,19 @@ async function sendTranslation() {
    chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
  }
 
+ // 处理粘贴事件，确保换行符被正确处理
+ function handlePaste(event) {
+   // 让默认的粘贴行为发生
+   setTimeout(() => {
+     adjustTextareaHeight();
+   }, 10); // 稍微延迟确保粘贴内容已经渲染
+ }
+
+ // 处理输入事件，包括换行符
+ function handleInput(event) {
+   adjustTextareaHeight();
+ }
+
  // 按钮悬停效果
  function addButtonHoverEffects() {
    const buttons = document.querySelectorAll('button');
@@ -167,7 +188,9 @@ async function sendTranslation() {
  // 聊天事件监听
  sendBtn.addEventListener('click', sendTranslation);
 
- chatInput.addEventListener('input', adjustTextareaHeight);
+ chatInput.addEventListener('input', handleInput);
+
+ chatInput.addEventListener('paste', handlePaste);
 
  chatInput.addEventListener('keypress', (e) => {
    if (e.key === 'Enter' && !e.shiftKey) {
