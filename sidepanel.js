@@ -13,15 +13,15 @@ const translateStatus = document.getElementById('translate-status');
 let currentTargetLang = '中文';
 
 // 添加聊天消息
- function addMessage(content, type = 'user') {
-   const messageDiv = document.createElement('div');
-   messageDiv.className = `chat-message ${type}`;
-   
-   // 获取当前时间
-   const now = new Date();
-   const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-   
-   messageDiv.innerHTML = `
+function addMessage(content, type = 'user') {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${type}`;
+
+  // 获取当前时间
+  const now = new Date();
+  const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  messageDiv.innerHTML = `
      <div class="message-content">${escapeHtmlWithLineBreaks(content)}</div>
      <button class="copy-button" title="复制消息">
        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,32 +31,32 @@ let currentTargetLang = '中文';
      </button>
      <div class="message-time">${timeString}</div>
    `;
-   
-   chatMessages.appendChild(messageDiv);
-   
-   // 添加复制功能
-   const copyButton = messageDiv.querySelector('.copy-button');
-   copyButton.addEventListener('click', () => {
-     navigator.clipboard.writeText(content).then(() => {
-       // 临时显示复制成功的反馈
-       copyButton.classList.add('copied');
-       const originalSvg = copyButton.innerHTML;
-       copyButton.innerHTML = `
+
+  chatMessages.appendChild(messageDiv);
+
+  // 添加复制功能
+  const copyButton = messageDiv.querySelector('.copy-button');
+  copyButton.addEventListener('click', () => {
+    navigator.clipboard.writeText(content).then(() => {
+      // 临时显示复制成功的反馈
+      copyButton.classList.add('copied');
+      const originalSvg = copyButton.innerHTML;
+      copyButton.innerHTML = `
          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
          </svg>
        `;
-       setTimeout(() => {
-         copyButton.classList.remove('copied');
-         copyButton.innerHTML = originalSvg;
-       }, 2000);
-     }).catch(err => {
-       console.error('复制失败:', err);
-     });
-   });
-   
-   chatMessages.scrollTop = chatMessages.scrollHeight;
- }
+      setTimeout(() => {
+        copyButton.classList.remove('copied');
+        copyButton.innerHTML = originalSvg;
+      }, 2000);
+    }).catch(err => {
+      console.error('复制失败:', err);
+    });
+  });
+
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 // HTML转义函数
 function escapeHtml(text) {
@@ -136,7 +136,7 @@ async function sendTranslation() {
   }
 
   showStatus('正在翻译...', 'info');
-  
+
   // 显示打字指示器
   const typingIndicator = addTypingIndicator();
 
@@ -160,7 +160,7 @@ async function sendTranslation() {
   } catch (error) {
     // 移除打字指示器
     removeTypingIndicator(typingIndicator);
-    
+
     console.error('翻译错误:', error);
     addMessage(`翻译失败: ${error.message}`, 'system');
     showStatus(`错误: ${error.message}`, 'error');
@@ -168,74 +168,74 @@ async function sendTranslation() {
 }
 
 // 清空聊天记录
- function clearChat() {
-   chatMessages.innerHTML = '';
-   // 添加欢迎信息
-   const welcomeDiv = document.createElement('div');
-   welcomeDiv.className = 'welcome-message';
-   welcomeDiv.innerHTML = `
+function clearChat() {
+  chatMessages.innerHTML = '';
+  // 添加欢迎信息
+  const welcomeDiv = document.createElement('div');
+  welcomeDiv.className = 'welcome-message';
+  welcomeDiv.innerHTML = `
      <div class="welcome-icon">✨</div>
-     <h3>欢迎使用AI翻译助手</h3>
+     <h3>欢迎使用MeowTrans助手</h3>
      <p>在这里输入您需要翻译的内容，我将为您提供高质量的翻译服务</p>
    `;
-   chatMessages.appendChild(welcomeDiv);
-   addMessage('请输入要翻译的文字，我将使用当前设置进行翻译。', 'system');
- }
+  chatMessages.appendChild(welcomeDiv);
+  addMessage('请输入要翻译的文字，我将使用当前设置进行翻译。', 'system');
+}
 
 // 自动调整文本框高度
- function adjustTextareaHeight() {
-   chatInput.style.height = 'auto';
-   chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
- }
+function adjustTextareaHeight() {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+}
 
- // 处理粘贴事件，确保换行符被正确处理
- function handlePaste(event) {
-   // 让默认的粘贴行为发生
-   setTimeout(() => {
-     adjustTextareaHeight();
-   }, 10); // 稍微延迟确保粘贴内容已经渲染
- }
+// 处理粘贴事件，确保换行符被正确处理
+function handlePaste(event) {
+  // 让默认的粘贴行为发生
+  setTimeout(() => {
+    adjustTextareaHeight();
+  }, 10); // 稍微延迟确保粘贴内容已经渲染
+}
 
- // 处理输入事件，包括换行符
- function handleInput(event) {
-   adjustTextareaHeight();
- }
+// 处理输入事件，包括换行符
+function handleInput(event) {
+  adjustTextareaHeight();
+}
 
- // 按钮悬停效果
- function addButtonHoverEffects() {
-   const buttons = document.querySelectorAll('button');
-   buttons.forEach(button => {
-     button.classList.add('btn-hover-effect');
-   });
- }
+// 按钮悬停效果
+function addButtonHoverEffects() {
+  const buttons = document.querySelectorAll('button');
+  buttons.forEach(button => {
+    button.classList.add('btn-hover-effect');
+  });
+}
 
- // 添加输入框焦点效果
- function addInputFocusEffects() {
-   chatInput.classList.add('input-focus-effect');
- }
+// 添加输入框焦点效果
+function addInputFocusEffects() {
+  chatInput.classList.add('input-focus-effect');
+}
 
- // 聊天事件监听
- sendBtn.addEventListener('click', sendTranslation);
+// 聊天事件监听
+sendBtn.addEventListener('click', sendTranslation);
 
- chatInput.addEventListener('input', handleInput);
+chatInput.addEventListener('input', handleInput);
 
- chatInput.addEventListener('paste', handlePaste);
+chatInput.addEventListener('paste', handlePaste);
 
- chatInput.addEventListener('keypress', (e) => {
-   if (e.key === 'Enter' && !e.shiftKey) {
-     e.preventDefault();
-     sendTranslation();
-   }
- });
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendTranslation();
+  }
+});
 
- clearBtn.addEventListener('click', clearChat);
+clearBtn.addEventListener('click', clearChat);
 
- // 初始化时调整文本框高度
- adjustTextareaHeight();
- 
- // 添加交互效果
- addButtonHoverEffects();
- addInputFocusEffects();
+// 初始化时调整文本框高度
+adjustTextareaHeight();
+
+// 添加交互效果
+addButtonHoverEffects();
+addInputFocusEffects();
 
 // Tab切换功能
 function initTabNavigation() {
@@ -398,7 +398,7 @@ async function saveSettings() {
 function showStatus(message, type = 'info') {
   statusDiv.textContent = message;
   statusDiv.className = `status show ${type}`;
-  
+
   setTimeout(() => {
     statusDiv.textContent = '';
     statusDiv.className = 'status';
@@ -409,7 +409,7 @@ function showStatus(message, type = 'info') {
 function showStatusPt(message, type = 'info') {
   statusDivPt.textContent = message;
   statusDivPt.className = `status show ${type}`;
-  
+
   setTimeout(() => {
     statusDivPt.textContent = '';
     statusDivPt.className = 'status';
@@ -423,18 +423,18 @@ async function translateWithProvider(text, settings) {
     text: text,
     settings: settings
   });
-  
+
   if (!response.success) {
     throw new Error(response.error || '翻译失败');
   }
-  
+
   return response.translatedText;
 }
 
 // 执行翻译 - 从页面翻译tab获取设置
 async function executeTranslate() {
   console.log('开始翻译...');
-  
+
   // 从页面翻译tab获取设置
   const settings = {
     provider: providerSelect.value,
@@ -451,40 +451,40 @@ async function executeTranslate() {
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
     translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
   };
-  
+
   console.log('翻译设置:', settings);
-  
+
   // 验证配置
   if (settings.provider === 'openrouter' && !settings.openrouterApiKey) {
     showStatus('请输入 OpenRouter API Key', 'error');
     return;
   }
-  
+
   if (settings.provider === 'openai' && !settings.openaiApiKey) {
     showStatus('请输入 OpenAI API Key', 'error');
     return;
   }
-  
+
   showStatus('正在翻译...', 'info');
-  
+
   try {
     // 获取当前标签页
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     if (!tab) {
       throw new Error('无法获取当前标签页');
     }
-    
+
     console.log('发送消息到标签页:', tab.id);
-    
+
     // 向content script发送消息
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: 'translate',
       settings: settings
     });
-    
+
     console.log('收到响应:', response);
-    
+
     if (response.success) {
       showStatus('翻译完成', 'success');
     } else {
@@ -492,7 +492,7 @@ async function executeTranslate() {
     }
   } catch (error) {
     console.error('翻译错误:', error);
-    
+
     // 如果是"Receiving end does not exist"错误，提示用户刷新页面
     if (error.message.includes('Receiving end does not exist')) {
       showStatus('错误: 请刷新当前页面后再试', 'error');
@@ -505,7 +505,7 @@ async function executeTranslate() {
 // 执行页面翻译
 async function executePageTranslate() {
   console.log('开始页面翻译...');
-  
+
   // 从页面翻译tab获取设置
   const settings = {
     provider: providerSelect.value,
@@ -522,40 +522,40 @@ async function executePageTranslate() {
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
     translateMode: translateModeSelectPt.value  // 使用页面翻译tab的翻译模式
   };
-  
+
   console.log('页面翻译设置:', settings);
-  
+
   // 验证配置
   if (settings.provider === 'openrouter' && !settings.openrouterApiKey) {
     showStatusPt('请输入 OpenRouter API Key', 'error');
     return;
   }
-  
+
   if (settings.provider === 'openai' && !settings.openaiApiKey) {
     showStatusPt('请输入 OpenAI API Key', 'error');
     return;
   }
-  
+
   showStatusPt('正在翻译...', 'info');
-  
+
   try {
     // 获取当前标签页
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     if (!tab) {
       throw new Error('无法获取当前标签页');
     }
-    
+
     console.log('发送消息到标签页:', tab.id);
-    
+
     // 向content script发送消息
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: 'translate',
       settings: settings
     });
-    
+
     console.log('收到响应:', response);
-    
+
     if (response.success) {
       showStatusPt('翻译完成', 'success');
     } else {
@@ -563,12 +563,12 @@ async function executePageTranslate() {
     }
   } catch (error) {
     console.error('页面翻译错误:', error);
-    
+
     // 如果是连接错误，尝试延迟重试
     if (error.message.includes('Receiving end does not exist') || error.message.includes('Could not establish connection')) {
       console.log('初次连接失败，等待1秒后重试...');
       showStatusPt('初次连接失败，正在重试...', 'info');
-      
+
       setTimeout(async () => {
         try {
           const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -576,7 +576,7 @@ async function executePageTranslate() {
             action: 'translate',
             settings: settings
           });
-          
+
           if (response.success) {
             showStatusPt('翻译完成', 'success');
           } else {
@@ -596,7 +596,7 @@ async function executePageTranslate() {
 // 测试Ollama连接（通过background script避免CORS问题）
 async function testOllamaConnection() {
   const ollamaUrl = ollamaUrlInput.value.trim();
-  
+
   try {
     const response = await chrome.runtime.sendMessage({
       action: 'testOllamaConnection',
@@ -710,13 +710,13 @@ async function restoreOriginalText() {
   try {
     // 获取当前标签页
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     if (!tab) {
       throw new Error('无法获取当前标签页');
     }
-    
+
     console.log('发送恢复原文消息到标签页:', tab.id);
-    
+
     // 向content script发送恢复原文消息
     // 对于恢复原文操作，我们不需要等待响应，只需发送消息即可
     chrome.tabs.sendMessage(tab.id, {
@@ -726,17 +726,17 @@ async function restoreOriginalText() {
       if (chrome.runtime.lastError) {
         console.error('恢复原文错误:', chrome.runtime.lastError);
         const errorMessage = chrome.runtime.lastError.message || chrome.runtime.lastError.toString() || '未知错误';
-        
+
         // 对于恢复原文，即使有通信错误，我们也认为操作已发出
         // 因为content script会在接收到消息时执行恢复操作
         if (errorMessage.includes('The message port closed before a response was received')) {
           // 这种情况下，消息可能已经发送成功，只是响应端口关闭了
           showStatusPt('原文恢复指令已发送', 'success');
-        } else if (errorMessage.includes('Receiving end does not exist') || 
-                   errorMessage.includes('Could not establish connection')) {
+        } else if (errorMessage.includes('Receiving end does not exist') ||
+          errorMessage.includes('Could not establish connection')) {
           console.log('初次连接失败，等待1秒后重试...');
           showStatusPt('初次连接失败，正在重试...', 'info');
-          
+
           setTimeout(async () => {
             try {
               const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -773,7 +773,7 @@ async function restoreOriginalText() {
         showStatusPt('原文恢复指令已发送', 'success');
       }
     });
-    
+
   } catch (error) {
     console.error('恢复原文错误:', error);
     showStatusPt(`错误: ${error.message}`, 'error');
@@ -877,22 +877,22 @@ function initHelpSearch() {
   const searchInput = document.getElementById('help-search-input');
   const helpCards = document.querySelectorAll('.help-card');
   const helpTags = document.querySelectorAll('.help-tag');
-  
+
   if (!searchInput) return;
-  
+
   // 搜索功能
   searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase().trim();
-    
+
     helpCards.forEach(card => {
       const title = card.querySelector('.help-card-title').textContent.toLowerCase();
       const content = card.querySelector('.help-card-content').textContent.toLowerCase();
       const tags = Array.from(card.querySelectorAll('.help-tag')).map(tag => tag.textContent.toLowerCase());
-      
+
       const matchesTitle = title.includes(searchTerm);
       const matchesContent = content.includes(searchTerm);
       const matchesTags = tags.some(tag => tag.includes(searchTerm));
-      
+
       if (searchTerm === '' || matchesTitle || matchesContent || matchesTags) {
         card.style.display = 'block';
         card.style.opacity = '1';
@@ -904,16 +904,16 @@ function initHelpSearch() {
       }
     });
   });
-  
+
   // 标签点击功能
   helpTags.forEach(tag => {
     tag.addEventListener('click', () => {
       const tagText = tag.textContent;
       searchInput.value = tagText;
-      
+
       // 触发搜索事件
       searchInput.dispatchEvent(new Event('input'));
-      
+
       // 滚动到第一个匹配的卡片
       setTimeout(() => {
         const firstVisibleCard = Array.from(helpCards).find(card => card.style.display !== 'none');
@@ -933,35 +933,35 @@ initHelpSearch();
 
 // 动态计算页面高度
 function calculatePageHeights() {
-    // 获取浏览器窗口高度
-    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-    
-    // 计算各页面的实际可用高度（减去顶部和底部UI元素的高度）
-    const headerHeight = 60; // 顶部导航高度
-    const inputAreaHeight = 120; // 输入区域高度（对于非聊天页面可能不需要）
-    const statusBarHeight = 40; // 状态栏高度
-    const padding = 20; // 总内边距
-    
-    const availableHeight = windowHeight - headerHeight - statusBarHeight - padding;
-    
-    // 应用动态高度到各个页面内容区
-    const pageContents = document.querySelectorAll('.page-content');
-    pageContents.forEach(page => {
-      page.style.height = `${availableHeight}px`;
-    });
-    
-    // 特别处理聊天消息区域（仅聊天页面需要）
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages) {
-      chatMessages.style.maxHeight = `${availableHeight - 80}px`; // 额外减去其他元素占用的空间
-    }
-    
-    // 处理帮助页面滚动容器
-    const helpScrollContainer = document.querySelector('.help-scroll-container');
-    if (helpScrollContainer) {
-      helpScrollContainer.style.height = `${availableHeight - 60}px`;
-    }
+  // 获取浏览器窗口高度
+  const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // 计算各页面的实际可用高度（减去顶部和底部UI元素的高度）
+  const headerHeight = 60; // 顶部导航高度
+  const inputAreaHeight = 120; // 输入区域高度（对于非聊天页面可能不需要）
+  const statusBarHeight = 40; // 状态栏高度
+  const padding = 20; // 总内边距
+
+  const availableHeight = windowHeight - headerHeight - statusBarHeight - padding;
+
+  // 应用动态高度到各个页面内容区
+  const pageContents = document.querySelectorAll('.page-content');
+  pageContents.forEach(page => {
+    page.style.height = `${availableHeight}px`;
+  });
+
+  // 特别处理聊天消息区域（仅聊天页面需要）
+  const chatMessages = document.getElementById('chat-messages');
+  if (chatMessages) {
+    chatMessages.style.maxHeight = `${availableHeight - 80}px`; // 额外减去其他元素占用的空间
   }
+
+  // 处理帮助页面滚动容器
+  const helpScrollContainer = document.querySelector('.help-scroll-container');
+  if (helpScrollContainer) {
+    helpScrollContainer.style.height = `${availableHeight - 60}px`;
+  }
+}
 
 // 页面加载完成后计算一次高度
 window.addEventListener('load', calculatePageHeights);

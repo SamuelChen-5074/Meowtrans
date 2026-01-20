@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "AI Translate",
+  "name": "MeowTrans",
   "version": "1.0.0",
   "description": "使用本地Ollama服务翻译网页内容",
   "permissions": [
