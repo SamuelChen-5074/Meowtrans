@@ -23,9 +23,38 @@ let currentTargetLang = '中文';
    
    messageDiv.innerHTML = `
      <div class="message-content">${escapeHtmlWithLineBreaks(content)}</div>
+     <button class="copy-button" title="复制消息">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+         <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+         <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+       </svg>
+     </button>
      <div class="message-time">${timeString}</div>
    `;
+   
    chatMessages.appendChild(messageDiv);
+   
+   // 添加复制功能
+   const copyButton = messageDiv.querySelector('.copy-button');
+   copyButton.addEventListener('click', () => {
+     navigator.clipboard.writeText(content).then(() => {
+       // 临时显示复制成功的反馈
+       copyButton.classList.add('copied');
+       const originalSvg = copyButton.innerHTML;
+       copyButton.innerHTML = `
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+         </svg>
+       `;
+       setTimeout(() => {
+         copyButton.classList.remove('copied');
+         copyButton.innerHTML = originalSvg;
+       }, 2000);
+     }).catch(err => {
+       console.error('复制失败:', err);
+     });
+   });
+   
    chatMessages.scrollTop = chatMessages.scrollHeight;
  }
 

@@ -84,6 +84,77 @@
   color: #868e96;
 }
 
+/* 复制按钮 */
+.copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0.9);
+  backdrop-filter: blur(4px);
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.chat-message:hover .copy-button {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+  transform: scale(1.1);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+.chat-message.system .copy-button {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #6c757d;
+}
+
+.chat-message.system .copy-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #495057;
+}
+
+/* 复制成功反馈样式 */
+.copy-button.copied {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.4);
+  color: #28a745;
+}
+
+.copy-button svg {
+  transition: all 0.2s ease;
+}
+
+.copy-button.copied svg {
+  transform: scale(1.1);
+}
+
+/* 时间和复制按钮的布局 */
+.chat-message .message-time {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
 /* 聊天输入区域 */
 .chat-input-area {
   display: flex;
