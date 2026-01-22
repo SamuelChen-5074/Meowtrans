@@ -655,6 +655,7 @@ function updateLangBtnIcon(lang) {
   const langToAbbr = {
     '中文': 'zh',
     '粤语': '粤',
+    '香港粤语': '港',
     'English': 'en',
     '日本語': 'jp',
     '한국어': 'ko',
