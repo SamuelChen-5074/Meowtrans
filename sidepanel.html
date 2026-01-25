@@ -19,6 +19,11 @@
             d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
         </svg>
       </button>
+      <button class="tab-item" data-tab="screenshot">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5-3.5 3.5 4.5 2.5-3.5 2 2.5L17 17H7l2-2.5L8.5 13.5z"/>
+        </svg>
+      </button>
       <button class="tab-item" data-tab="pagetranslate">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
@@ -102,6 +107,23 @@
 
           <!-- 翻译状态 -->
           <div id="translate-status" class="status"></div>
+        </div>
+
+        <!-- 截图页面 -->
+        <div id="page-screenshot" class="page-content">
+          <div class="header">
+            <h1>截图翻译</h1>
+          </div>
+          <div class="screenshot-content">
+            <p>此功能允许您截取网页部分内容并进行翻译。</p>
+            <div class="screenshot-placeholder">
+              <p>截图预览将在此处显示</p>
+            </div>
+            <div class="button-group">
+              <button id="capture-screenshot" class="btn primary">截取当前页面</button>
+              <button id="upload-screenshot" class="btn secondary">上传图片</button>
+            </div>
+          </div>
         </div>
 
         <!-- 页面翻译页面 -->
