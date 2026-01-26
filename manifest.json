@@ -5,7 +5,6 @@
   "description": "使用本地Ollama服务翻译网页内容",
   "permissions": [
     "activeTab",
-    "scripting",
     "storage",
     "contextMenus",
     "alarms",
