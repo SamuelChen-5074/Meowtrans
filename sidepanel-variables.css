@@ -51,6 +51,9 @@ body {
   flex: 1;
   overflow-y: hidden;
   background: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 允许flex子项收缩 */
 }
 
 .container {
@@ -59,6 +62,9 @@ body {
   box-shadow: none;
   padding: 5px;
   background: white;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* 平滑滚动 */

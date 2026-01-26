@@ -88,7 +88,19 @@
 #page-chat.active,
 #page-settings.active,
 #page-help.active {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* 允许flex子项收缩 */
+}
+
+/* 为截图和页面翻译页面添加激活样式 */
+#page-screenshot.active,
+#page-pagetranslate.active {
+  display: flex !important;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* 允许flex子项收缩 */
 }
 
 /* 聊天页面特殊显示规则 */
@@ -108,13 +120,28 @@
   flex-direction: column;
   height: 100%;
   padding: 5px;
+  min-height: 0; /* 允许flex子项收缩 */
 }
 
 /* 其他页面激活状态 */
 #page-settings.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* 允许flex子项收缩 */
 }
 
 #page-help.active {
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* 允许flex子项收缩 */
+}
+
+/* 页面内容容器通用样式 */
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 允许flex子项收缩 */
 }
