@@ -145,3 +145,8 @@
   flex-direction: column;
   min-height: 0; /* 允许flex子项收缩 */
 }
+
+/* 页面翻译页面中的按钮组设置为最大化宽度 */
+#page-pagetranslate .button-group {
+  width: 100%;
+}

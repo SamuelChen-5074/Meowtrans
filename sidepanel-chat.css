@@ -179,6 +179,8 @@
   margin-bottom: 0 !important;
   align-self: flex-end;
   justify-content: flex-end;
+  width: auto; /* 自适应宽度，避免影响输入框 */
+  min-width: 0; /* 允许收缩 */
 }
 
 /* 清空按钮 */
