@@ -150,3 +150,16 @@
 #page-pagetranslate .button-group {
   width: 100%;
 }
+
+/* 截图页面中的按钮组样式 */
+#page-screenshot .button-group {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* 截图页面特定按钮的上下间距 */
+#page-screenshot #upload-screenshot,
+#page-screenshot #translate-screenshot-btn {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}

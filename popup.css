@@ -167,6 +167,19 @@ body {
   margin-bottom: 15px;
 }
 
+/* 为截图页面的按钮增加上下间距 */
+#page-screenshot .button-group {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+/* 为截图页面的特定按钮增加上下间距 */
+#page-screenshot #upload-screenshot,
+#page-screenshot #translate-screenshot-btn {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 .btn {
   flex: 1;
   padding: 10px 16px;
