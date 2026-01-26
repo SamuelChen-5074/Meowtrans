@@ -274,6 +274,13 @@ const openaiApiKeyInput = document.getElementById('openai-api-key');
 const openaiModelInput = document.getElementById('openai-model');
 const openaiBaseUrlInput = document.getElementById('openai-base-url');
 const openaiOrganizationInput = document.getElementById('openai-organization');
+const ocrProviderSelect = document.getElementById('ocr-provider');
+const ollamaOcrUrlInput = document.getElementById('ollama-ocr-url');
+const ollamaOcrModelInput = document.getElementById('ollama-ocr-model');
+const openrouterOcrApiKeyInput = document.getElementById('openrouter-ocr-api-key');
+const openrouterOcrModelInput = document.getElementById('openrouter-ocr-model');
+const openaiOcrApiKeyInput = document.getElementById('openai-ocr-api-key');
+const openaiOcrModelInput = document.getElementById('openai-ocr-model');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const statusDiv = document.getElementById('status');
 
@@ -286,6 +293,9 @@ const statusDivPt = document.getElementById('status-pt');
 const ollamaSettingsDiv = document.getElementById('ollama-settings');
 const openrouterSettingsDiv = document.getElementById('openrouter-settings');
 const openaiSettingsDiv = document.getElementById('openai-settings');
+const ollamaOcrSettingsDiv = document.getElementById('ollama-ocr-settings');
+const openrouterOcrSettingsDiv = document.getElementById('openrouter-ocr-settings');
+const openaiOcrSettingsDiv = document.getElementById('openai-ocr-settings');
 
 // 默认设置
 const defaultSettings = {
@@ -300,6 +310,13 @@ const defaultSettings = {
   openaiModel: 'gpt-3.5-turbo',
   openaiBaseUrl: 'https://api.openai.com/v1',
   openaiOrganization: '',
+  ocrProvider: 'ollama',
+  ollamaOcrUrl: 'http://localhost:11434',
+  ollamaOcrModel: 'llava:latest',
+  openrouterOcrApiKey: '',
+  openrouterOcrModel: 'llava-hf/llava-1.5-7b-hf',
+  openaiOcrApiKey: '',
+  openaiOcrModel: 'gpt-4o',
   targetLang: '中文',
   translateMode: 'selected',
   autoTranslatePage: false,
@@ -322,6 +339,13 @@ async function loadSettings() {
   openaiModelInput.value = settings.openaiModel || 'gpt-3.5-turbo';
   openaiBaseUrlInput.value = settings.openaiBaseUrl || 'https://api.openai.com/v1';
   openaiOrganizationInput.value = settings.openaiOrganization || '';
+  ocrProviderSelect.value = settings.ocrProvider || 'ollama';
+  ollamaOcrUrlInput.value = settings.ollamaOcrUrl || 'http://localhost:11434';
+  ollamaOcrModelInput.value = settings.ollamaOcrModel || 'llava:latest';
+  openrouterOcrApiKeyInput.value = settings.openrouterOcrApiKey || '';
+  openrouterOcrModelInput.value = settings.openrouterOcrModel || 'llava-hf/llava-1.5-7b-hf';
+  openaiOcrApiKeyInput.value = settings.openaiOcrApiKey || '';
+  openaiOcrModelInput.value = settings.openaiOcrModel || 'gpt-4o';
 
   // 设置页面翻译tab的值
   targetLangSelectPt.value = settings.targetLang;
@@ -344,6 +368,7 @@ async function loadSettings() {
 
   // 切换显示相应的设置面板
   toggleProviderSettings(settings.provider);
+  toggleOcrSettings(settings.ocrProvider);
 
   // 初始化 lang-btn 图标
   updateLangBtnIcon(settings.targetLang);
@@ -366,6 +391,23 @@ function toggleProviderSettings(provider) {
   }
 }
 
+// 切换OCR设置面板
+function toggleOcrSettings(ocrProvider) {
+  // 隐藏所有OCR设置面板
+  ollamaOcrSettingsDiv.style.display = 'none';
+  openrouterOcrSettingsDiv.style.display = 'none';
+  openaiOcrSettingsDiv.style.display = 'none';
+  
+  // 显示选定的OCR设置面板
+  if (ocrProvider === 'ollama') {
+    ollamaOcrSettingsDiv.style.display = 'block';
+  } else if (ocrProvider === 'openrouter') {
+    openrouterOcrSettingsDiv.style.display = 'block';
+  } else if (ocrProvider === 'openai') {
+    openaiOcrSettingsDiv.style.display = 'block';
+  }
+}
+
 // 保存设置
 async function saveSettings() {
   const settings = {
@@ -380,6 +422,13 @@ async function saveSettings() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
+    ocrProvider: ocrProviderSelect.value,
+    ollamaOcrUrl: ollamaOcrUrlInput.value.trim(),
+    ollamaOcrModel: ollamaOcrModelInput.value.trim(),
+    openrouterOcrApiKey: openrouterOcrApiKeyInput.value.trim(),
+    openrouterOcrModel: openrouterOcrModelInput.value.trim(),
+    openaiOcrApiKey: openaiOcrApiKeyInput.value.trim(),
+    openaiOcrModel: openaiOcrModelInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的值
     translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的值
     autoTranslatePage: document.getElementById('auto-translate-page').checked,
@@ -614,6 +663,11 @@ providerSelect.addEventListener('change', (e) => {
   toggleProviderSettings(e.target.value);
 });
 
+ocrProviderSelect.addEventListener('change', (e) => {
+  console.log('OCR供应商切换:', e.target.value);
+  toggleOcrSettings(e.target.value);
+});
+
 saveSettingsBtn.addEventListener('click', () => {
   console.log('保存设置按钮被点击');
   saveSettings();
@@ -821,6 +875,13 @@ async function saveCurrentSettings() {
     openaiModel: openaiModelInput.value.trim(),
     openaiBaseUrl: openaiBaseUrlInput.value.trim(),
     openaiOrganization: openaiOrganizationInput.value.trim(),
+    ocrProvider: ocrProviderSelect.value,
+    ollamaOcrUrl: ollamaOcrUrlInput.value.trim(),
+    ollamaOcrModel: ollamaOcrModelInput.value.trim(),
+    openrouterOcrApiKey: openrouterOcrApiKeyInput.value.trim(),
+    openrouterOcrModel: openrouterOcrModelInput.value.trim(),
+    openaiOcrApiKey: openaiOcrApiKeyInput.value.trim(),
+    openaiOcrModel: openaiOcrModelInput.value.trim(),
     targetLang: targetLangSelectPt.value,  // 使用页面翻译tab的目标语言
     translateMode: translateModeSelectPt.value,  // 使用页面翻译tab的翻译模式
     autoTranslatePage: document.getElementById('auto-translate-page').checked,
@@ -926,11 +987,418 @@ function initHelpSearch() {
   });
 }
 
+// 实现截图功能
+async function captureScreenshot() {
+  try {
+    // 获取当前活动标签页
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // 捕获屏幕截图
+    const screenshotDataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
+      format: 'png',
+      quality: 80
+    });
+    
+    // 获取截图页面的占位符元素
+    const screenshotPlaceholder = document.querySelector('.screenshot-placeholder');
+    if (screenshotPlaceholder) {
+      // 清空占位符内容
+      screenshotPlaceholder.innerHTML = '';
+      
+      // 创建图像元素显示截图
+      const img = document.createElement('img');
+      img.src = screenshotDataUrl;
+      img.alt = '截图预览';
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '400px';
+      img.style.borderRadius = '8px';
+      img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+      
+      // 添加截图预览标题
+      const title = document.createElement('h3');
+      title.textContent = '截图预览';
+      title.style.marginTop = '0';
+      title.style.marginBottom = '15px';
+      title.style.color = '#333';
+      
+      // 将标题和图像添加到占位符
+      screenshotPlaceholder.appendChild(title);
+      screenshotPlaceholder.appendChild(img);
+      
+      // 创建操作按钮组
+      const buttonGroup = document.createElement('div');
+      buttonGroup.className = 'button-group';
+      buttonGroup.style.marginTop = '15px';
+      buttonGroup.style.display = 'flex';
+      buttonGroup.style.gap = '10px';
+      buttonGroup.style.flexWrap = 'wrap';
+      
+      // 翻译按钮
+      const translateBtn = document.createElement('button');
+      translateBtn.id = 'translate-screenshot-btn';
+      translateBtn.className = 'btn primary';
+      translateBtn.textContent = '翻译截图中的文字';
+      translateBtn.style.flex = '1';
+      translateBtn.style.minWidth = '140px';
+      
+      // 重新截图按钮
+      const recaptureBtn = document.createElement('button');
+      recaptureBtn.id = 'recapture-btn';
+      recaptureBtn.className = 'btn secondary';
+      recaptureBtn.textContent = '重新截图';
+      recaptureBtn.style.flex = '1';
+      recaptureBtn.style.minWidth = '140px';
+      
+      // 保存按钮
+      const saveBtn = document.createElement('button');
+      saveBtn.id = 'save-screenshot-btn';
+      saveBtn.className = 'btn secondary';
+      saveBtn.textContent = '保存截图';
+      saveBtn.style.flex = '1';
+      saveBtn.style.minWidth = '140px';
+      
+      // 添加事件监听器
+      translateBtn.addEventListener('click', () => translateScreenshot(screenshotDataUrl));
+      recaptureBtn.addEventListener('click', captureScreenshot);
+      saveBtn.addEventListener('click', () => saveScreenshot(screenshotDataUrl));
+      
+      // 添加按钮到按钮组
+      buttonGroup.appendChild(translateBtn);
+      buttonGroup.appendChild(recaptureBtn);
+      buttonGroup.appendChild(saveBtn);
+      
+      // 将按钮组添加到占位符
+      screenshotPlaceholder.appendChild(buttonGroup);
+    }
+    
+    console.log('截图成功');
+    showStatus('截图成功', 'success');
+  } catch (error) {
+    console.error('截图失败:', error);
+    showStatus(`截图失败: ${error.message}`, 'error');
+  }
+}
+
+// 上传截图功能
+function uploadScreenshot() {
+  // 创建隐藏的文件输入元素
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  
+  fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageDataUrl = e.target.result;
+        
+        // 显示上传的图片
+        const screenshotPlaceholder = document.querySelector('.screenshot-placeholder');
+        if (screenshotPlaceholder) {
+          screenshotPlaceholder.innerHTML = '';
+          
+          const img = document.createElement('img');
+          img.src = imageDataUrl;
+          img.alt = '上传的图片预览';
+          img.style.maxWidth = '100%';
+          img.style.maxHeight = '400px';
+          img.style.borderRadius = '8px';
+          img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          
+          const title = document.createElement('h3');
+          title.textContent = '图片预览';
+          title.style.marginTop = '0';
+          title.style.marginBottom = '15px';
+          title.style.color = '#333';
+          
+          screenshotPlaceholder.appendChild(title);
+          screenshotPlaceholder.appendChild(img);
+          
+          // 创建操作按钮组
+          const buttonGroup = document.createElement('div');
+          buttonGroup.className = 'button-group';
+          buttonGroup.style.marginTop = '15px';
+          buttonGroup.style.display = 'flex';
+          buttonGroup.style.gap = '10px';
+          buttonGroup.style.flexWrap = 'wrap';
+          
+          const translateBtn = document.createElement('button');
+          translateBtn.id = 'translate-screenshot-btn';
+          translateBtn.className = 'btn primary';
+          translateBtn.textContent = '翻译图片中的文字';
+          translateBtn.style.flex = '1';
+          translateBtn.style.minWidth = '140px';
+          
+          const retakeBtn = document.createElement('button');
+          retakeBtn.id = 'retake-upload-btn';
+          retakeBtn.className = 'btn secondary';
+          retakeBtn.textContent = '重新上传';
+          retakeBtn.style.flex = '1';
+          retakeBtn.style.minWidth = '140px';
+          
+          translateBtn.addEventListener('click', () => translateScreenshot(imageDataUrl));
+          retakeBtn.addEventListener('click', uploadScreenshot);
+          
+          buttonGroup.appendChild(translateBtn);
+          buttonGroup.appendChild(retakeBtn);
+          
+          screenshotPlaceholder.appendChild(buttonGroup);
+        }
+        
+        showStatus('图片上传成功', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // 触发文件选择对话框
+  document.body.appendChild(fileInput);
+  fileInput.click();
+  document.body.removeChild(fileInput);
+}
+
+// 翻译截图功能
+async function translateScreenshot(screenshotDataUrl) {
+  try {
+    // 获取当前设置
+    const result = await chrome.storage.local.get('translateSettings');
+    const settings = result.translateSettings || defaultSettings;
+    
+    showStatus('正在识别和翻译图片中的文字...', 'info');
+    
+    // 将截图发送到后台服务进行OCR和翻译
+    const response = await chrome.runtime.sendMessage({
+      action: 'ocrAndTranslate',
+      imageDataUrl: screenshotDataUrl,
+      settings: settings
+    });
+    
+    if (response.success) {
+      // 显示翻译结果
+      showTranslationResult(response.originalText, response.translatedText);
+      showStatus('翻译完成', 'success');
+    } else {
+      throw new Error(response.error || '翻译失败');
+    }
+  } catch (error) {
+    console.error('翻译截图失败:', error);
+    showStatus(`翻译失败: ${error.message}`, 'error');
+  }
+}
+
+// 显示翻译结果
+function showTranslationResult(originalText, translatedText) {
+  // 创建翻译结果弹窗
+  const existingPopup = document.getElementById('screenshot-translation-popup');
+  if (existingPopup) {
+    existingPopup.remove();
+  }
+  
+  const popup = document.createElement('div');
+  popup.id = 'screenshot-translation-popup';
+  popup.innerHTML = `
+    <div class="screenshot-translation-header">
+      <span class="screenshot-translation-title">翻译结果</span>
+      <button class="screenshot-translation-close">×</button>
+    </div>
+    <div class="screenshot-translation-content">
+      <div class="screenshot-original-text">
+        <strong>原文：</strong>
+        <p>${escapeHtml(originalText)}</p>
+      </div>
+      <div class="screenshot-translated-text">
+        <strong>译文：</strong>
+        <p>${escapeHtml(translatedText)}</p>
+      </div>
+    </div>
+    <div class="screenshot-translation-footer">
+      <button class="screenshot-translation-copy">复制译文</button>
+    </div>
+  `;
+  
+  // 添加样式
+  const style = document.createElement('style');
+  style.textContent = `
+    #screenshot-translation-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      z-index: 2147483647;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow: auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .screenshot-translation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px 12px 0 0;
+    }
+    
+    .screenshot-translation-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .screenshot-translation-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    
+    .screenshot-translation-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .screenshot-translation-content {
+      padding: 20px;
+    }
+    
+    .screenshot-original-text,
+    .screenshot-translated-text {
+      margin-bottom: 16px;
+    }
+    
+    .screenshot-original-text strong,
+    .screenshot-translated-text strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    .screenshot-original-text p,
+    .screenshot-translated-text p {
+      margin: 0;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      line-height: 1.6;
+      color: #555;
+      white-space: pre-wrap;
+    }
+    
+    .screenshot-translated-text p {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border: 1px solid #667eea30;
+    }
+    
+    .screenshot-translation-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .screenshot-translation-copy {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .screenshot-translation-copy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  `;
+  
+  document.head.appendChild(style);
+  document.body.appendChild(popup);
+  
+  // 关闭按钮事件
+  const closeBtn = popup.querySelector('.screenshot-translation-close');
+  closeBtn.addEventListener('click', () => {
+    popup.remove();
+    if (style.parentNode) {
+      style.remove();
+    }
+  });
+  
+  // 复制按钮事件
+  const copyBtn = popup.querySelector('.screenshot-translation-copy');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(translatedText);
+      copyBtn.textContent = '已复制！';
+      setTimeout(() => {
+        copyBtn.textContent = '复制译文';
+      }, 2000);
+    } catch (error) {
+      console.error('复制失败:', error);
+    }
+  });
+  
+  // 点击外部关闭
+  document.addEventListener('click', function closePopup(e) {
+    if (!popup.contains(e.target)) {
+      popup.remove();
+      if (style.parentNode) {
+        style.remove();
+      }
+      document.removeEventListener('click', closePopup);
+    }
+  });
+}
+
+// 保存截图功能
+function saveScreenshot(dataUrl) {
+  // 创建一个临时链接来下载图片
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = `screenshot_${new Date().getTime()}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showStatus('截图已保存', 'success');
+}
+
+// 初始化截图页面的按钮事件
+function initScreenshotPage() {
+  const captureBtn = document.getElementById('capture-screenshot');
+  const uploadBtn = document.getElementById('upload-screenshot');
+  
+  if (captureBtn) {
+    captureBtn.addEventListener('click', captureScreenshot);
+  }
+  
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', uploadScreenshot);
+  }
+}
+
 // 初始化
 console.log('sidepanel.js 加载完成，开始初始化...');
 initTabNavigation();
 loadSettings();
 initHelpSearch();
+initScreenshotPage(); // 初始化截图页面功能
 
 // 动态计算页面高度
 function calculatePageHeights() {

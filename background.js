@@ -272,8 +272,225 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(result => sendResponse(result))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
+  } else if (request.action === 'ocrAndTranslate') {
+    // 处理OCR和翻译请求
+    handleOcrAndTranslate(request.imageDataUrl, request.settings)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // 保持消息通道开放
   }
 });
+
+// 处理OCR和翻译请求
+async function handleOcrAndTranslate(imageDataUrl, settings) {
+  try {
+    // 从图片中提取文本
+    const extractedText = await extractTextFromImage(imageDataUrl, settings);
+    
+    if (!extractedText || extractedText.trim().length === 0) {
+      return { success: false, error: '未能从图片中识别到任何文字' };
+    }
+    
+    // 使用翻译API翻译提取的文本
+    const translationResult = await handleTranslateText(extractedText, settings);
+    
+    if (translationResult.success) {
+      return {
+        success: true,
+        originalText: extractedText,
+        translatedText: translationResult.translatedText
+      };
+    } else {
+      return {
+        success: false,
+        error: translationResult.error || '翻译失败'
+      };
+    }
+  } catch (error) {
+    console.error('OCR和翻译处理错误:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// 从图片中提取文本
+async function extractTextFromImage(imageDataUrl, settings) {
+  // 根据OCR提供商选择合适的处理方法
+  const ocrProvider = settings.ocrProvider || 'ollama';
+  
+  switch(ocrProvider) {
+    case 'ollama':
+      return await extractTextWithOllamaOCR(imageDataUrl, settings);
+    case 'openrouter':
+      if (settings.openrouterOcrApiKey) {
+        return await extractTextWithOpenRouterOCR(imageDataUrl, settings);
+      }
+      // 如果没有API密钥，回退到Ollama
+      return await extractTextWithOllamaOCR(imageDataUrl, settings);
+    case 'openai':
+      if (settings.openaiOcrApiKey) {
+        return await extractTextWithOpenAIOCR(imageDataUrl, settings);
+      }
+      // 如果没有API密钥，回退到Ollama
+      return await extractTextWithOllamaOCR(imageDataUrl, settings);
+    default:
+      // 默认使用Ollama
+      return await extractTextWithOllamaOCR(imageDataUrl, settings);
+  }
+}
+
+// 使用Ollama进行OCR识别（视觉模型如LLaVA）
+async function extractTextWithOllamaOCR(imageDataUrl, settings) {
+  const ollamaUrl = settings.ollamaOcrUrl || settings.ollamaUrl || 'http://localhost:11434';
+  const model = settings.ollamaOcrModel || 'llava:latest';
+  
+  try {
+    // 将base64数据URL转换为blob并发送给Ollama
+    const base64Data = imageDataUrl.split(',')[1];
+    
+    const response = await fetch(`${ollamaUrl}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        prompt: "请仔细识别这张图片中的所有文字内容，并将它们完整地提取出来。只需要返回识别到的文字，不要添加任何其他解释。",
+        images: [base64Data], // Ollama API接受base64编码的图片
+        stream: false
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Ollama OCR请求失败: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.response || data.output || '';
+  } catch (error) {
+    console.error('Ollama OCR处理失败:', error);
+    // 返回错误信息，让调用方处理
+    throw error;
+  }
+}
+
+// 使用OpenRouter进行OCR识别
+async function extractTextWithOpenRouterOCR(imageDataUrl, settings) {
+  const apiKey = settings.openrouterOcrApiKey;
+  const model = settings.openrouterOcrModel || 'llava-hf/llava-1.5-7b-hf';
+  
+  try {
+    const base64Data = imageDataUrl.split(',')[1];
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "请仔细识别这张图片中的所有文字内容，并将它们完整地提取出来。只需要返回识别到的文字，不要添加任何其他解释。"
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Data}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenRouter OCR请求失败: ${errorData.error?.message || response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch (error) {
+    console.error('OpenRouter OCR处理失败:', error);
+    throw error;
+  }
+}
+
+// 使用OpenAI进行OCR识别
+async function extractTextWithOpenAIOCR(imageDataUrl, settings) {
+  const apiKey = settings.openaiOcrApiKey;
+  const model = settings.openaiOcrModel || 'gpt-4o';
+  const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
+  
+  try {
+    const base64Data = imageDataUrl.split(',')[1];
+    
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "请仔细识别这张图片中的所有文字内容，并将它们完整地提取出来。只需要返回识别到的文字，不要添加任何其他解释。"
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Data}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI OCR请求失败: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch (error) {
+    console.error('OpenAI OCR处理失败:', error);
+    throw error;
+  }
+}
+
+// 本地OCR提取（模拟，在实际部署时会被真实OCR服务替代）
+async function simulateOCRExtraction(imageDataUrl, settings) {
+  // 这里只是本地模拟，实际的OCR服务会分析图片并返回其中的文字
+  // 在真实实现中，你可以：
+  // 1. 调用云端OCR服务API（如Google Vision API、Azure Computer Vision等）
+  // 2. 使用客户端OCR库（如Tesseract.js）
+  // 3. 或者结合两者作为备用方案
+  
+  // 模拟延迟
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // 返回示例文本，实际应从图片中提取
+  // 在实际应用中，这里应该调用真实的OCR服务
+  return `这是一段从图片中识别出的文本示例。实际的OCR服务会分析您提供的图片，并返回其中包含的文字内容。您可以将这段文字翻译成${settings.targetLang}。`;
+}
+
+
 
 // 处理翻译文本请求
 async function handleTranslateText(text, settings) {

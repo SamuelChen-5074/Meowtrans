@@ -8,10 +8,14 @@
     "storage",
     "contextMenus",
     "alarms",
-    "sidePanel"
+    "sidePanel",
+    "tabs"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "http://localhost:11434/*",
+    "https://openrouter.ai/*",
+    "https://api.openai.com/*"
   ],
   "action": {
     "default_icon": {

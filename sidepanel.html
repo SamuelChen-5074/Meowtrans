@@ -211,7 +211,7 @@
             <!-- Ollama 配置 -->
             <div id="ollama-settings" class="provider-settings">
               <div class="setting-item">
-                <label for="ollama-url">Ollama 服务地址：</label>
+                <label for="ollama-url">本地服务地址：</label>
                 <input type="text" id="ollama-url" value="http://localhost:11434" placeholder="http://localhost:11434">
               </div>
 
@@ -266,6 +266,56 @@
               <div class="setting-item">
                 <label for="openai-organization">组织 ID（可选）：</label>
                 <input type="text" id="openai-organization" placeholder="例如: org-...">
+              </div>
+            </div>
+
+            <!-- OCR 配置 -->
+            <div class="setting-item">
+              <label for="ocr-provider">OCR 服务提供商：</label>
+              <select id="ocr-provider">
+                <option value="ollama">Ollama (本地)</option>
+                <option value="openrouter">OpenRouter (云端)</option>
+                <option value="openai">OpenAI (官方/兼容)</option>
+              </select>
+            </div>
+
+            <!-- Ollama OCR 配置 -->
+            <div id="ollama-ocr-settings" class="provider-settings">
+              <div class="setting-item">
+                <label for="ollama-ocr-url">Ollama OCR 服务地址：</label>
+                <input type="text" id="ollama-ocr-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+              </div>
+
+              <div class="setting-item">
+                <label for="ollama-ocr-model">Ollama OCR 模型：</label>
+                <input type="text" id="ollama-ocr-model" value="llava:latest" placeholder="例如: llava:latest">
+              </div>
+            </div>
+
+            <!-- OpenRouter OCR 配置 -->
+            <div id="openrouter-ocr-settings" class="provider-settings" style="display: none;">
+              <div class="setting-item">
+                <label for="openrouter-ocr-api-key">OpenRouter OCR API Key：</label>
+                <input type="password" id="openrouter-ocr-api-key" placeholder="sk-or-..." autocomplete="off">
+              </div>
+
+              <div class="setting-item">
+                <label for="openrouter-ocr-model">OpenRouter OCR 模型：</label>
+                <input type="text" id="openrouter-ocr-model" value="llava-hf/llava-1.5-7b-hf"
+                  placeholder="例如: llava-hf/llava-1.5-7b-hf">
+              </div>
+            </div>
+
+            <!-- OpenAI OCR 配置 -->
+            <div id="openai-ocr-settings" class="provider-settings" style="display: none;">
+              <div class="setting-item">
+                <label for="openai-ocr-api-key">OpenAI OCR API Key：</label>
+                <input type="password" id="openai-ocr-api-key" placeholder="sk-..." autocomplete="off">
+              </div>
+
+              <div class="setting-item">
+                <label for="openai-ocr-model">OpenAI OCR 模型：</label>
+                <input type="text" id="openai-ocr-model" value="gpt-4o" placeholder="例如: gpt-4o">
               </div>
             </div>
 
