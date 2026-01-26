@@ -891,8 +891,6 @@ async function saveCurrentSettings() {
   await chrome.storage.local.set({ translateSettings: settings });
 }
 
-
-
 // 页面翻译按钮事件监听
 translateBtnPt.addEventListener('click', async () => {
   console.log('页面翻译按钮被点击');
@@ -987,95 +985,70 @@ function initHelpSearch() {
   });
 }
 
-// 实现截图功能
-async function captureScreenshot() {
-  try {
-    // 获取当前活动标签页
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+// 截图功能已被移除，保留上传图片功能
+
+// 显示图片预览
+function displayScreenshotPreview(screenshotDataUrl) {
+  // 获取截图页面的占位符元素
+  const screenshotPlaceholder = document.querySelector('.screenshot-placeholder');
+  if (screenshotPlaceholder) {
+    // 清空占位符内容
+    screenshotPlaceholder.innerHTML = '';
     
-    // 捕获屏幕截图
-    const screenshotDataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-      format: 'png',
-      quality: 80
-    });
+    // 创建图像元素显示截图
+    const img = document.createElement('img');
+    img.src = screenshotDataUrl;
+    img.alt = '图片预览';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '400px';
+    img.style.borderRadius = '8px';
+    img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
     
-    // 获取截图页面的占位符元素
-    const screenshotPlaceholder = document.querySelector('.screenshot-placeholder');
-    if (screenshotPlaceholder) {
-      // 清空占位符内容
-      screenshotPlaceholder.innerHTML = '';
-      
-      // 创建图像元素显示截图
-      const img = document.createElement('img');
-      img.src = screenshotDataUrl;
-      img.alt = '截图预览';
-      img.style.maxWidth = '100%';
-      img.style.maxHeight = '400px';
-      img.style.borderRadius = '8px';
-      img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-      
-      // 添加截图预览标题
-      const title = document.createElement('h3');
-      title.textContent = '截图预览';
-      title.style.marginTop = '0';
-      title.style.marginBottom = '15px';
-      title.style.color = '#333';
-      
-      // 将标题和图像添加到占位符
-      screenshotPlaceholder.appendChild(title);
-      screenshotPlaceholder.appendChild(img);
-      
-      // 创建操作按钮组
-      const buttonGroup = document.createElement('div');
-      buttonGroup.className = 'button-group';
-      buttonGroup.style.marginTop = '15px';
-      buttonGroup.style.display = 'flex';
-      buttonGroup.style.gap = '10px';
-      buttonGroup.style.flexWrap = 'wrap';
-      
-      // 翻译按钮
-      const translateBtn = document.createElement('button');
-      translateBtn.id = 'translate-screenshot-btn';
-      translateBtn.className = 'btn primary';
-      translateBtn.textContent = '翻译截图中的文字';
-      translateBtn.style.flex = '1';
-      translateBtn.style.minWidth = '140px';
-      
-      // 重新截图按钮
-      const recaptureBtn = document.createElement('button');
-      recaptureBtn.id = 'recapture-btn';
-      recaptureBtn.className = 'btn secondary';
-      recaptureBtn.textContent = '重新截图';
-      recaptureBtn.style.flex = '1';
-      recaptureBtn.style.minWidth = '140px';
-      
-      // 保存按钮
-      const saveBtn = document.createElement('button');
-      saveBtn.id = 'save-screenshot-btn';
-      saveBtn.className = 'btn secondary';
-      saveBtn.textContent = '保存截图';
-      saveBtn.style.flex = '1';
-      saveBtn.style.minWidth = '140px';
-      
-      // 添加事件监听器
-      translateBtn.addEventListener('click', () => translateScreenshot(screenshotDataUrl));
-      recaptureBtn.addEventListener('click', captureScreenshot);
-      saveBtn.addEventListener('click', () => saveScreenshot(screenshotDataUrl));
-      
-      // 添加按钮到按钮组
-      buttonGroup.appendChild(translateBtn);
-      buttonGroup.appendChild(recaptureBtn);
-      buttonGroup.appendChild(saveBtn);
-      
-      // 将按钮组添加到占位符
-      screenshotPlaceholder.appendChild(buttonGroup);
-    }
+    // 添加截图预览标题
+    const title = document.createElement('h3');
+    title.textContent = '图片预览';
+    title.style.marginTop = '0';
+    title.style.marginBottom = '15px';
+    title.style.color = '#333';
     
-    console.log('截图成功');
-    showStatus('截图成功', 'success');
-  } catch (error) {
-    console.error('截图失败:', error);
-    showStatus(`截图失败: ${error.message}`, 'error');
+    // 将标题和图像添加到占位符
+    screenshotPlaceholder.appendChild(title);
+    screenshotPlaceholder.appendChild(img);
+    
+    // 创建操作按钮组
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+    buttonGroup.style.marginTop = '15px';
+    buttonGroup.style.display = 'flex';
+    buttonGroup.style.gap = '10px';
+    buttonGroup.style.flexWrap = 'wrap';
+    
+    // 翻译按钮
+    const translateBtn = document.createElement('button');
+    translateBtn.id = 'translate-screenshot-btn';
+    translateBtn.className = 'btn primary';
+    translateBtn.textContent = '翻译图片中的文字';
+    translateBtn.style.flex = '1';
+    translateBtn.style.minWidth = '140px';
+    
+    // 保存按钮
+    const saveBtn = document.createElement('button');
+    saveBtn.id = 'save-screenshot-btn';
+    saveBtn.className = 'btn secondary';
+    saveBtn.textContent = '保存图片';
+    saveBtn.style.flex = '1';
+    saveBtn.style.minWidth = '140px';
+    
+    // 添加事件监听器
+    translateBtn.addEventListener('click', () => translateScreenshot(screenshotDataUrl));
+    saveBtn.addEventListener('click', () => saveScreenshot(screenshotDataUrl));
+    
+    // 添加按钮到按钮组
+    buttonGroup.appendChild(translateBtn);
+    buttonGroup.appendChild(saveBtn);
+    
+    // 将按钮组添加到占位符
+    screenshotPlaceholder.appendChild(buttonGroup);
   }
 }
 
@@ -1131,18 +1104,9 @@ function uploadScreenshot() {
           translateBtn.style.flex = '1';
           translateBtn.style.minWidth = '140px';
           
-          const retakeBtn = document.createElement('button');
-          retakeBtn.id = 'retake-upload-btn';
-          retakeBtn.className = 'btn secondary';
-          retakeBtn.textContent = '重新上传';
-          retakeBtn.style.flex = '1';
-          retakeBtn.style.minWidth = '140px';
-          
           translateBtn.addEventListener('click', () => translateScreenshot(imageDataUrl));
-          retakeBtn.addEventListener('click', uploadScreenshot);
           
           buttonGroup.appendChild(translateBtn);
-          buttonGroup.appendChild(retakeBtn);
           
           screenshotPlaceholder.appendChild(buttonGroup);
         }
@@ -1379,14 +1343,9 @@ function saveScreenshot(dataUrl) {
   showStatus('截图已保存', 'success');
 }
 
-// 初始化截图页面的按钮事件
+// 初始化截图页面的按钮事件（只保留上传功能）
 function initScreenshotPage() {
-  const captureBtn = document.getElementById('capture-screenshot');
   const uploadBtn = document.getElementById('upload-screenshot');
-  
-  if (captureBtn) {
-    captureBtn.addEventListener('click', captureScreenshot);
-  }
   
   if (uploadBtn) {
     uploadBtn.addEventListener('click', uploadScreenshot);

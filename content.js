@@ -571,10 +571,198 @@ function initializeTranslation() {
   console.log('翻译功能初始化完成');
 }
 
-// 监听来自popup的消息
+// 元素选择截图功能
+let elementSelectionMode = false;
+let selectedElement = null;
+
+// 开启元素选择模式
+function enableElementSelection() {
+  elementSelectionMode = true;
+  selectedElement = null;
+  
+  // 显示提示信息
+  showSelectionOverlay();
+  
+  // 添加鼠标移动事件监听
+  document.addEventListener('mousemove', highlightElementOnMove);
+  document.addEventListener('click', selectElementOnClick);
+  document.addEventListener('keydown', cancelSelectionOnEscape);
+  
+  // 更改鼠标指针样式
+  document.body.style.cursor = 'crosshair';
+}
+
+// 关闭元素选择模式
+function disableElementSelection() {
+  elementSelectionMode = false;
+  
+  // 移除高亮覆盖层
+  removeHighlightOverlay();
+  
+  // 移除事件监听
+  document.removeEventListener('mousemove', highlightElementOnMove);
+  document.removeEventListener('click', selectElementOnClick);
+  document.removeEventListener('keydown', cancelSelectionOnEscape);
+  
+  // 恢复鼠标指针样式
+  document.body.style.cursor = '';
+}
+
+// 显示选择覆盖层
+function showSelectionOverlay() {
+  // 创建覆盖层元素
+  const overlay = document.createElement('div');
+  overlay.id = 'element-selection-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 2147483646; /* 略低于选择工具提示 */
+    pointer-events: none;
+    display: none;
+  `;
+  document.body.appendChild(overlay);
+}
+
+// 移除高亮覆盖层
+function removeHighlightOverlay() {
+  const overlay = document.getElementById('element-selection-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+  
+  const highlight = document.getElementById('element-highlight-box');
+  if (highlight) {
+    highlight.remove();
+  }
+}
+
+// 高亮鼠标悬停的元素
+function highlightElementOnMove(event) {
+  if (!elementSelectionMode) return;
+  
+  const element = document.elementFromPoint(event.clientX, event.clientY);
+  if (element && element.id !== 'element-selection-overlay' && element !== document.body && element !== document.documentElement) {
+    highlightElement(element);
+  }
+}
+
+// 高亮指定元素
+function highlightElement(element) {
+  selectedElement = element;
+  
+  // 获取元素位置和尺寸
+  const rect = element.getBoundingClientRect();
+  
+  // 创建或更新高亮框
+  let highlightBox = document.getElementById('element-highlight-box');
+  if (!highlightBox) {
+    highlightBox = document.createElement('div');
+    highlightBox.id = 'element-highlight-box';
+    highlightBox.style.cssText = `
+      position: fixed;
+      border: 2px dashed #00ff00;
+      background-color: rgba(0, 255, 0, 0.1);
+      pointer-events: none;
+      z-index: 2147483647;
+      box-sizing: border-box;
+    `;
+    document.body.appendChild(highlightBox);
+  }
+  
+  // 设置高亮框的位置和尺寸
+  highlightBox.style.left = rect.left + 'px';
+  highlightBox.style.top = rect.top + 'px';
+  highlightBox.style.width = rect.width + 'px';
+  highlightBox.style.height = rect.height + 'px';
+}
+
+// 选择元素并截图
+function selectElementOnClick(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  if (!elementSelectionMode || !selectedElement) return;
+  
+  // 截取选定元素
+  captureElementScreenshot(selectedElement);
+  
+  // 关闭选择模式
+  disableElementSelection();
+}
+
+// 按ESC取消选择
+function cancelSelectionOnEscape(event) {
+  if (event.key === 'Escape') {
+    disableElementSelection();
+  }
+}
+
+// 截取元素截图
+async function captureElementScreenshot(element) {
+  try {
+    // 由于Content Security Policy限制，我们无法在content script中直接使用html2canvas
+    // 因此我们通知侧边栏使用chrome.tabs.captureVisibleTab API进行全页面截图
+    // 但在发送消息之前，我们先获取选中元素的信息
+    const elementRect = element.getBoundingClientRect();
+    
+    // 发送消息到侧边栏，告知需要进行元素截图
+    chrome.runtime.sendMessage({
+      action: 'elementSelectedForScreenshot',
+      elementRect: {
+        x: Math.round(elementRect.x),
+        y: Math.round(elementRect.y),
+        width: Math.round(elementRect.width),
+        height: Math.round(elementRect.height)
+      }
+    });
+    
+    // 关闭选择模式
+    disableElementSelection();
+  } catch (error) {
+    console.error('元素截图失败:', error);
+    
+    // 发送错误信息到侧边栏
+    chrome.runtime.sendMessage({
+      action: 'elementScreenshotError',
+      error: error.message
+    });
+  }
+}
+
+// 获取元素的计算样式（辅助函数）
+function getComputedStyle(element) {
+  const computedStyle = window.getComputedStyle(element);
+  const styles = {};
+  
+  // 获取一些重要的样式属性
+  const importantProps = [
+    'color', 'background-color', 'font-size', 'font-family', 'font-weight',
+    'padding', 'margin', 'border', 'width', 'height', 'position', 'display',
+    'text-align', 'line-height', 'letter-spacing'
+  ];
+  
+  importantProps.forEach(prop => {
+    styles[prop] = computedStyle.getPropertyValue(prop);
+  });
+  
+  return styles;
+}
+
+// 统一的消息处理器
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('收到消息:', request);
   
+  if (request.action === 'enableElementSelection') {
+    enableElementSelection();
+    sendResponse({ success: true });
+    return true;
+  }
+  
+  // 翻译相关消息处理
   if (request.action === 'translate') {
     const settings = request.settings;
     console.log('翻译设置:', settings);
@@ -582,7 +770,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     switch (settings.translateMode) {
       case 'selected':
         console.log('执行选中文字翻译');
-        translateSelectedText(settings).then(sendResponse);
+        translateSelectedText(settings).then(result => {
+          if (result.success) {
+            sendResponse({ success: true, translatedText: result.translatedText });
+          } else {
+            sendResponse({ success: false, error: result.error });
+          }
+        }).catch(error => {
+          sendResponse({ success: false, error: error.message });
+        });
         return true; // 保持消息通道开放
       
       case 'page':
@@ -593,13 +789,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           document.addEventListener('DOMContentLoaded', () => {
             // 添加短暂延迟确保所有内容都已渲染
             setTimeout(() => {
-              translatePage(settings).then(sendResponse);
+              translatePage(settings).then(result => {
+                sendResponse(result);
+              }).catch(error => {
+                sendResponse({ success: false, error: error.message });
+              });
             }, 1000);
           });
         } else {
           // DOM已经加载完成，但仍添加短暂延迟确保动态内容加载
           setTimeout(() => {
-            translatePage(settings).then(sendResponse);
+            translatePage(settings).then(result => {
+              sendResponse(result);
+            }).catch(error => {
+              sendResponse({ success: false, error: error.message });
+            });
           }, 1000);
         }
         return true;
@@ -614,16 +818,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.error('未知的翻译模式:', settings.translateMode);
         sendResponse({ success: false, error: '未知的翻译模式' });
     }
-  } else if (request.action === 'restore') {
+  } 
+  // 恢复原文消息处理
+  else if (request.action === 'restore') {
     console.log('执行恢复原文');
-    restoreOriginalText().then(sendResponse);
+    restoreOriginalText().then(result => {
+      sendResponse(result);
+    }).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
     return true;
-  } else if (request.action === 'cancelAndRestore') {
+  } 
+  // 取消并恢复原文消息处理
+  else if (request.action === 'cancelAndRestore') {
     console.log('执行取消翻译并恢复原文');
     // 首先清除任何正在进行的翻译操作，然后恢复原文
-    restoreOriginalText().then(sendResponse);
+    restoreOriginalText().then(result => {
+      sendResponse(result);
+    }).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
     return true;
-  } else if (request.action === 'check_translated_status') {
+  } 
+  // 检查翻译状态消息处理
+  else if (request.action === 'check_translated_status') {
     // 检查页面是否已经被翻译
     const translatedElements = document.querySelectorAll(`[${TRANSLATED_ATTR}]`);
     sendResponse({ 
@@ -633,8 +851,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+  // 元素选择截图消息处理
+  else if (request.action === 'elementSelectedForScreenshot') {
+    // 这个消息应该由sidepanel.js处理，不需要在content.js中处理
+    console.log('收到元素选择截图消息');
+    sendResponse({ success: true });
+    return true;
+  }
   
   console.log('消息处理完成');
+  return false; // 表示不需要异步响应
 });
 
 // 确保页面加载完成后初始化

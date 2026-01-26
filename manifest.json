@@ -9,13 +9,15 @@
     "contextMenus",
     "alarms",
     "sidePanel",
-    "tabs"
+    "tabs",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>",
     "http://localhost:11434/*",
     "https://openrouter.ai/*",
-    "https://api.openai.com/*"
+    "https://api.openai.com/*",
+    "https://cdnjs.cloudflare.com/*"
   ],
   "action": {
     "default_icon": {
