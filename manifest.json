@@ -9,8 +9,7 @@
     "contextMenus",
     "alarms",
     "sidePanel",
-    "tabs",
-    "scripting"
+    "tabs"
   ],
   "host_permissions": [
     "<all_urls>",
