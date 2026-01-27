@@ -368,7 +368,7 @@ async function loadSettings() {
 
   // 切换显示相应的设置面板
   toggleProviderSettings(settings.provider);
-  toggleOcrSettings(settings.ocrProvider);
+  toggleOcrSettings(settings.ocrProvider || 'ollama');
 
   // 初始化 lang-btn 图标
   updateLangBtnIcon(settings.targetLang);
