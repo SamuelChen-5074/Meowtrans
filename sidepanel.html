@@ -21,7 +21,8 @@
       </button>
       <button class="tab-item" data-tab="screenshot">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5-3.5 3.5 4.5 2.5-3.5 2 2.5L17 17H7l2-2.5L8.5 13.5z"/>
+          <path
+            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5-3.5 3.5 4.5 2.5-3.5 2 2.5L17 17H7l2-2.5L8.5 13.5z" />
         </svg>
       </button>
       <button class="tab-item" data-tab="pagetranslate">
@@ -116,6 +117,11 @@
           </div>
           <div class="screenshot-content">
             <p>此功能允许您上传图片并进行翻译。</p>
+             <div class="info-section" style="margin: 15px 0; padding: 12px; background: #f8f9ff; border-radius: 8px; border-left: 4px solid #667eea;">
+               <p style="margin: 0; color: #555; font-size: 14px;">
+                 💡 提示：您也可以直接 <strong>Ctrl+V</strong> 粘贴图片到此页面
+               </p>
+             </div>
             <div class="screenshot-placeholder">
               <p>图片预览将在此处显示</p>
             </div>
@@ -240,7 +246,7 @@
 
               <div class="setting-item">
                 <label for="openrouter-app-name">应用名称（可选）：</label>
-                <input type="text" id="openrouter-app-name" placeholder="Ollama 翻译插件">
+                <input type="text" id="openrouter-app-name" placeholder="翻译插件">
               </div>
             </div>
 
@@ -272,7 +278,7 @@
             <div class="setting-item">
               <label for="ocr-provider">OCR 服务提供商：</label>
               <select id="ocr-provider">
-                <option value="ollama">Ollama (本地)</option>
+                <option value="ollama">本地</option>
                 <option value="openrouter">OpenRouter (云端)</option>
                 <option value="openai">OpenAI (官方/兼容)</option>
               </select>
@@ -281,12 +287,13 @@
             <!-- Ollama OCR 配置 -->
             <div id="ollama-ocr-settings" class="provider-settings">
               <div class="setting-item">
-                <label for="ollama-ocr-url">Ollama OCR 服务地址：</label>
-                <input type="text" id="ollama-ocr-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+                <label for="ollama-ocr-url">OCR 服务地址：</label>
+                <input type="text" id="ollama-ocr-url" value="http://localhost:11434"
+                  placeholder="http://localhost:11434">
               </div>
 
               <div class="setting-item">
-                <label for="ollama-ocr-model">Ollama OCR 模型：</label>
+                <label for="ollama-ocr-model">OCR 模型：</label>
                 <input type="text" id="ollama-ocr-model" value="llava:latest" placeholder="例如: llava:latest">
               </div>
             </div>
@@ -454,7 +461,7 @@
                 <div class="help-card-content">
                   <p>遇到问题？查看以下常见解答：</p>
                   <ul>
-                    <li><strong>Ollama连接失败</strong>：请确保Ollama服务正在运行，并检查服务地址配置是否正确</li>
+                    <li><strong>连接失败</strong>：请确保服务正在运行，并检查服务地址配置是否正确</li>
                     <li><strong>OpenRouter/OpenAI无法使用</strong>：需要有效的API Key，请检查API Key是否正确</li>
                     <li><strong>翻译速度慢</strong>：检查网络连接，或尝试切换到其他API供应商</li>
                     <li><strong>翻译结果不准确</strong>：尝试更换不同的模型或调整目标语言设置</li>

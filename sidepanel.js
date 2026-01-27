@@ -1350,6 +1350,89 @@ function initScreenshotPage() {
   if (uploadBtn) {
     uploadBtn.addEventListener('click', uploadScreenshot);
   }
+
+  // 添加粘贴功能
+  document.addEventListener('paste', handlePasteEvent);
+}
+
+// 处理粘贴事件
+async function handlePasteEvent(event) {
+  // 检查当前是否在截图页面
+  const screenshotPage = document.getElementById('page-screenshot');
+  const isActive = screenshotPage && screenshotPage.classList.contains('active');
+  
+  if (!isActive) {
+    return; // 只在截图页面激活时处理粘贴
+  }
+
+  const items = event.clipboardData.items;
+  
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    
+    if (item.type.indexOf('image') !== -1) {
+      event.preventDefault(); // 阻止默认粘贴行为
+      
+      const blob = item.getAsFile();
+      if (blob) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imageDataUrl = e.target.result;
+          
+          // 显示粘贴的图片
+          displayPastedImage(imageDataUrl);
+          showStatus('图片已从剪贴板粘贴', 'success');
+        };
+        reader.readAsDataURL(blob);
+      }
+      break; // 只处理第一个图片
+    }
+  }
+}
+
+// 显示粘贴的图片
+function displayPastedImage(imageDataUrl) {
+  const screenshotPlaceholder = document.querySelector('.screenshot-placeholder');
+  if (screenshotPlaceholder) {
+    screenshotPlaceholder.innerHTML = '';
+    
+    const img = document.createElement('img');
+    img.src = imageDataUrl;
+    img.alt = '粘贴的图片预览';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '400px';
+    img.style.borderRadius = '8px';
+    img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+    
+    const title = document.createElement('h3');
+    title.textContent = '粘贴的图片预览';
+    title.style.marginTop = '0';
+    title.style.marginBottom = '15px';
+    title.style.color = '#333';
+    
+    screenshotPlaceholder.appendChild(title);
+    screenshotPlaceholder.appendChild(img);
+    
+    // 创建操作按钮组
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'button-group';
+    buttonGroup.style.marginTop = '15px';
+    buttonGroup.style.display = 'flex';
+    buttonGroup.style.gap = '10px';
+    buttonGroup.style.flexWrap = 'wrap';
+    
+    const translateBtn = document.createElement('button');
+    translateBtn.id = 'translate-screenshot-btn';
+    translateBtn.className = 'btn primary';
+    translateBtn.textContent = '翻译图片中的文字';
+    translateBtn.style.flex = '1';
+    translateBtn.style.minWidth = '140px';
+    
+    translateBtn.addEventListener('click', () => translateScreenshot(imageDataUrl));
+    
+    buttonGroup.appendChild(translateBtn);
+    screenshotPlaceholder.appendChild(buttonGroup);
+  }
 }
 
 // 初始化
