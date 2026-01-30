@@ -284,8 +284,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 处理OCR和翻译请求
 async function handleOcrAndTranslate(imageDataUrl, settings) {
   try {
+    // console.log('开始OCR和翻译处理:', {
+    //   imageDataLength: imageDataUrl.length,
+    //   ocrProvider: settings.ocrProvider,
+    //   ollamaOcrUrl: settings.ollamaOcrUrl,
+    //   ollamaOcrModel: settings.ollamaOcrModel,
+    //   timestamp: new Date().toISOString()
+    // });
+    
     // 从图片中提取文本
     const extractedText = await extractTextFromImage(imageDataUrl, settings);
+    
+    // console.log('OCR提取结果:', {
+    //   extractedTextLength: extractedText ? extractedText.length : 0,
+    //   hasText: !!(extractedText && extractedText.trim().length > 0),
+    //   timestamp: new Date().toISOString()
+    // });
     
     if (!extractedText || extractedText.trim().length === 0) {
       return { success: false, error: '未能从图片中识别到任何文字' };
@@ -293,6 +307,12 @@ async function handleOcrAndTranslate(imageDataUrl, settings) {
     
     // 使用翻译API翻译提取的文本
     const translationResult = await handleTranslateText(extractedText, settings);
+    
+    // console.log('翻译结果:', {
+    //   translationSuccess: translationResult.success,
+    //   translatedTextLength: translationResult.translatedText ? translationResult.translatedText.length : 0,
+    //   timestamp: new Date().toISOString()
+    // });
     
     if (translationResult.success) {
       return {
@@ -307,7 +327,12 @@ async function handleOcrAndTranslate(imageDataUrl, settings) {
       };
     }
   } catch (error) {
-    console.error('OCR和翻译处理错误:', error);
+    console.error('OCR和翻译处理错误详情:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     return { success: false, error: error.message };
   }
 }
@@ -317,22 +342,34 @@ async function extractTextFromImage(imageDataUrl, settings) {
   // 根据OCR提供商选择合适的处理方法
   const ocrProvider = settings.ocrProvider || 'ollama';
   
+    // console.log('开始图片文字提取:', {
+    //   ocrProvider,
+    //   imageDataLength: imageDataUrl.length,
+    //   timestamp: new Date().toISOString()
+    // });
+  
   switch(ocrProvider) {
     case 'ollama':
+      // console.log('使用Ollama进行OCR识别');
       return await extractTextWithOllamaOCR(imageDataUrl, settings);
     case 'openrouter':
       if (settings.openrouterOcrApiKey) {
+        // console.log('使用OpenRouter进行OCR识别');
         return await extractTextWithOpenRouterOCR(imageDataUrl, settings);
       }
+      // console.log('OpenRouter API密钥缺失，回退到Ollama');
       // 如果没有API密钥，回退到Ollama
       return await extractTextWithOllamaOCR(imageDataUrl, settings);
     case 'openai':
       if (settings.openaiOcrApiKey) {
+        // console.log('使用OpenAI进行OCR识别');
         return await extractTextWithOpenAIOCR(imageDataUrl, settings);
       }
+      // console.log('OpenAI API密钥缺失，回退到Ollama');
       // 如果没有API密钥，回退到Ollama
       return await extractTextWithOllamaOCR(imageDataUrl, settings);
     default:
+      // console.log('使用默认Ollama进行OCR识别');
       // 默认使用Ollama
       return await extractTextWithOllamaOCR(imageDataUrl, settings);
   }
@@ -343,34 +380,131 @@ async function extractTextWithOllamaOCR(imageDataUrl, settings) {
   const ollamaUrl = settings.ollamaOcrUrl || settings.ollamaUrl || 'http://localhost:11434';
   const model = settings.ollamaOcrModel || 'llava:latest';
   
-  try {
-    // 将base64数据URL转换为blob并发送给Ollama
-    const base64Data = imageDataUrl.split(',')[1];
-    
-    const response = await fetch(`${ollamaUrl}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: "请仔细识别这张图片中的所有文字内容，并将它们完整地提取出来。只需要返回识别到的文字，不要添加任何其他解释。",
-        images: [base64Data], // Ollama API接受base64编码的图片
-        stream: false
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Ollama OCR请求失败: ${response.status}`);
+  // 重试机制
+  const maxRetries = 3;
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // console.log('开始Ollama OCR请求:', {
+      //   attempt,
+      //   ollamaUrl,
+      //   model,
+      //   imageDataLength: imageDataUrl.length,
+      //   timestamp: new Date().toISOString()
+      // });
+      
+      // 将base64数据URL转换为blob并发送给Ollama
+      const base64Data = imageDataUrl.split(',')[1];
+      
+      // 设置请求超时 - 增加到120秒以处理LLaVA模型的图像处理时间
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        // console.log('Ollama OCR请求超时:', {
+        //   attempt,
+        //   timeout: 120000,
+        //   timestamp: new Date().toISOString()
+        // });
+        controller.abort(new Error('Ollama OCR请求超时: 120秒内未收到响应'));
+      }, 120000); // 120秒超时
+      
+      const response = await fetch(`${ollamaUrl}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: model,
+          prompt: "请仔细识别这张图片中的所有文字内容，并将它们完整地提取出来。只需要返回识别到的文字，不要添加任何其他解释。",
+          images: [base64Data], // Ollama API接受base64编码的图片
+          stream: false
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // console.log('Ollama OCR响应状态:', {
+      //   attempt,
+      //   status: response.status,
+      //   statusText: response.statusText,
+      //   timestamp: new Date().toISOString()
+      // });
+      
+      if (!response.ok) {
+        const errorDetails = await response.text();
+        console.error('Ollama OCR请求失败详细信息:', {
+          attempt,
+          status: response.status,
+          statusText: response.statusText,
+          errorDetails: errorDetails,
+          timestamp: new Date().toISOString()
+        });
+        
+        // 如果是504网关超时，可能是Ollama处理时间过长，应该重试
+        if (response.status === 504) {
+          // console.log(`Ollama OCR 504错误，准备重试 (尝试 ${attempt}/${maxRetries})`);
+          lastError = new Error(`Ollama OCR请求失败: 504 Gateway Timeout - ${errorDetails.substring(0, 200)}`);
+          
+          if (attempt < maxRetries) {
+            // 等待一段时间后重试，指数退避
+            const delay = Math.pow(2, attempt) * 1000; // 2秒, 4秒, 8秒...
+            // console.log(`等待 ${delay}ms 后重试...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+        }
+        
+        throw new Error(`Ollama OCR请求失败: ${response.status} - ${errorDetails.substring(0, 200)}`);
+      }
+      
+      const data = await response.json();
+      // console.log('Ollama OCR响应数据:', {
+      //   attempt,
+      //   responseLength: data.response ? data.response.length : 0,
+      //   hasOutput: !!data.output,
+      //   timestamp: new Date().toISOString()
+      // });
+      
+      return data.response || data.output || '';
+    } catch (error) {
+      console.error('Ollama OCR处理失败详情:', {
+        attempt,
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+      
+      // 优化AbortError的重试处理，包括signal is aborted without reason的情况
+      if (error.name === 'AbortError' || error.message.includes('aborted') || error.message.includes('timeout')) {
+        // console.log(`检测到中断错误，准备重试: ${error.message}`);
+        lastError = new Error(`Ollama OCR请求超时或被中断: 120秒内未收到响应 - ${error.message} (尝试 ${attempt}/${maxRetries})`);
+        
+        if (attempt < maxRetries) {
+         const delay = Math.pow(2, attempt) * 1000; // 指数退避
+         // console.log(`等待 ${delay}ms 后重试...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      } else {
+        lastError = error;
+      }
+      
+      if (attempt === maxRetries) {
+        // 所有重试都失败了
+        console.error('Ollama OCR所有重试都失败:', {
+          error: error.message,
+          totalAttempts: maxRetries,
+          timestamp: new Date().toISOString()
+        });
+        throw lastError;
+      }
     }
-    
-    const data = await response.json();
-    return data.response || data.output || '';
-  } catch (error) {
-    console.error('Ollama OCR处理失败:', error);
-    // 返回错误信息，让调用方处理
-    throw error;
   }
+  
+  // 这行不应该被执行，但为了类型安全返回
+  throw lastError;
 }
 
 // 使用OpenRouter进行OCR识别
@@ -536,7 +670,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // 当页面完全加载后，检查是否需要自动翻译
   if (changeInfo.status === 'complete' && tab.url) {
-    console.log('页面加载完成:', tab.url);
+    // console.log('页面加载完成:', tab.url);
 
     // 获取保存的设置
     const result = await chrome.storage.local.get('translateSettings');
@@ -544,7 +678,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     // 检查是否启用了自动翻译页面功能
     if (settings.autoTranslatePage === true) {
-      console.log('自动翻译页面已启用，开始翻译:', tab.url);
+      // console.log('自动翻译页面已启用，开始翻译:', tab.url);
 
       try {
         // 向content script发送翻译消息
@@ -566,7 +700,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             translateMode: 'page'
           }
         });
-        console.log('自动翻译页面完成');
+        // console.log('自动翻译页面完成');
       } catch (error) {
         console.error('自动翻译页面失败:', error);
 
@@ -592,7 +726,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                   translateMode: 'page'
                 }
               });
-              console.log('自动翻译页面重试成功');
+               // console.log('自动翻译页面重试成功');
             } catch (retryError) {
               console.error('自动翻译页面重试失败:', retryError);
             }
@@ -609,15 +743,15 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
     const oldValue = changes.translateSettings.oldValue || {};
     const newValue = changes.translateSettings.newValue || {};
 
-    console.log('翻译设置已更新:', { oldValue, newValue });
+    // console.log('翻译设置已更新:', { oldValue, newValue });
 
     // 检查autoTranslatePage设置是否发生变化
     if (oldValue.autoTranslatePage !== newValue.autoTranslatePage) {
-      console.log('autoTranslatePage设置已更改:', { oldValue: oldValue.autoTranslatePage, newValue: newValue.autoTranslatePage });
+      // console.log('autoTranslatePage设置已更改:', { oldValue: oldValue.autoTranslatePage, newValue: newValue.autoTranslatePage });
 
       // 如果autoTranslatePage从true变为false，则需要恢复所有已打开页面的原文
       if (oldValue.autoTranslatePage === true && newValue.autoTranslatePage === false) {
-        console.log('自动翻译页面功能已关闭，正在恢复所有已打开页面的原文');
+        // console.log('自动翻译页面功能已关闭，正在恢复所有已打开页面的原文');
 
         // 获取所有已打开的标签页
         const tabs = await chrome.tabs.query({});
@@ -631,18 +765,18 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
                 action: 'cancelAndRestore',
                 pageInstanceId: Date.now() + Math.random() // 生成临时ID用于此操作
               });
-              console.log(`已向标签页 ${tab.id} 发送取消翻译并恢复原文指令`);
+              // console.log(`已向标签页 ${tab.id} 发送取消翻译并恢复原文指令`);
             } catch (error) {
               try {
                 // 如果cancelAndRestore失败（可能因为页面正在加载或其他原因），尝试直接恢复
                 await chrome.tabs.sendMessage(tab.id, {
                   action: 'restore'
                 });
-                console.log(`已向标签页 ${tab.id} 发送恢复原文指令`);
+                 // console.log(`已向标签页 ${tab.id} 发送恢复原文指令`);
               } catch (secondError) {
                 // 如果标签页没有content script（如扩展页面或受限页面），则忽略错误
                 // 也可能是因为页面正在加载或已经离开，这也属于正常情况
-                console.log(`标签页 ${tab.id} 无法接收恢复指令:`, secondError.message);
+                 // console.log(`标签页 ${tab.id} 无法接收恢复指令:`, secondError.message);
               }
             }
           }
@@ -657,6 +791,6 @@ chrome.alarms.create('keepAlive', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'keepAlive') {
     // 执行一些轻量级操作以保持Service Worker活跃
-    console.log('Service Worker keep-alive ping');
+    // console.log('Service Worker keep-alive ping');
   }
 });
