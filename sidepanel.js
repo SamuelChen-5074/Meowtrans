@@ -705,18 +705,18 @@ langDropdownItems.forEach(item => {
 
 // 更新 lang-btn 图标为语言缩写
 function updateLangBtnIcon(lang) {
-  // 语言到缩写的映射
-  const langToAbbr = {
-    '中文': 'zh',
-    '粤语': '粤',
-    '香港粤语': '港',
-    'English': 'en',
-    '日本語': 'jp',
-    '한국어': 'ko',
-    'Français': 'fr',
-    'Deutsch': 'de',
-    'Español': 'es'
-  };
+   // 语言到缩写的映射
+   const langToAbbr = {
+     '中文': 'zh',
+     '广州方言': '粤',
+     '香港粤语': '港',
+     'English': 'en',
+     '日本語': 'jp',
+     '한국어': 'ko',
+     'Français': 'fr',
+     'Deutsch': 'de',
+     'Español': 'es'
+   };
 
   const abbr = langToAbbr[lang] || lang;
 
