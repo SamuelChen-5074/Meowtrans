@@ -645,6 +645,198 @@ async function handleTranslateText(text, settings) {
   }
 }
 
+// ===== 流式翻译支持 =====
+
+// Ollama 流式翻译
+async function translateWithOllamaStream(text, settings, onChunk) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+
+  const response = await fetch(`${settings.ollamaUrl}/api/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: settings.modelName,
+      prompt: prompt,
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Ollama API 错误: ${response.status}`;
+    if (response.status === 404) {
+      errorMessage += ` - 模型 "${settings.modelName}" 不存在或 Ollama 服务未运行。`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n').filter(line => line.trim());
+
+    for (const line of lines) {
+      try {
+        const data = JSON.parse(line);
+        if (data.response) {
+          fullText += data.response;
+          onChunk(data.response);
+        }
+      } catch (e) {
+        // 忽略解析错误
+      }
+    }
+  }
+
+  return fullText.trim();
+}
+
+// OpenRouter 流式翻译
+async function translateWithOpenRouterStream(text, settings, onChunk) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+
+  const appName = settings.openrouterAppName || 'Ollama Translation Extension';
+  const encodedAppName = encodeURIComponent(appName);
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settings.openrouterApiKey}`,
+      'HTTP-Referer': settings.openrouterSiteUrl || 'https://localhost',
+      'X-Title': encodedAppName
+    },
+    body: JSON.stringify({
+      model: settings.openrouterModel,
+      messages: [{ role: 'user', content: prompt }],
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`OpenRouter API 错误: ${errorData.error?.message || response.status}`);
+  }
+
+  return await parseSSEStream(response, onChunk);
+}
+
+// OpenAI 流式翻译
+async function translateWithOpenAIStream(text, settings, onChunk) {
+  const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
+
+  const baseUrl = settings.openaiBaseUrl || 'https://api.openai.com/v1';
+  const apiUrl = baseUrl.endsWith('/') ? `${baseUrl}chat/completions` : `${baseUrl}/chat/completions`;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${settings.openaiApiKey}`
+  };
+
+  if (settings.openaiOrganization) {
+    headers['OpenAI-Organization'] = settings.openaiOrganization;
+  }
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: settings.openaiModel || 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMessage = `OpenAI API 错误: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage += ` - ${errorData.error?.message || errorData.message || '未知错误'}`;
+    } catch (e) {
+      errorMessage += ` - ${errorText}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  return await parseSSEStream(response, onChunk);
+}
+
+// 解析 SSE 流（OpenAI/OpenRouter 通用）
+async function parseSSEStream(response, onChunk) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+      const dataStr = trimmed.slice(6);
+      if (dataStr === '[DONE]') continue;
+
+      try {
+        const data = JSON.parse(dataStr);
+        const content = data.choices?.[0]?.delta?.content;
+        if (content) {
+          fullText += content;
+          onChunk(content);
+        }
+      } catch (e) {
+        // 忽略解析错误
+      }
+    }
+  }
+
+  return fullText.trim();
+}
+
+// 处理流式翻译的端口连接
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'streaming-translate') return;
+
+  port.onMessage.addListener(async (request) => {
+    if (request.action !== 'translateTextStream') return;
+
+    const { text, settings } = request;
+
+    try {
+      const onChunk = (chunk) => {
+        port.postMessage({ type: 'chunk', content: chunk });
+      };
+
+      if (settings.provider === 'openrouter') {
+        await translateWithOpenRouterStream(text, settings, onChunk);
+      } else if (settings.provider === 'openai') {
+        await translateWithOpenAIStream(text, settings, onChunk);
+      } else {
+        await translateWithOllamaStream(text, settings, onChunk);
+      }
+
+      port.postMessage({ type: 'done' });
+    } catch (error) {
+      console.error('流式翻译错误:', error);
+      port.postMessage({ type: 'error', error: error.message });
+    }
+  });
+});
+
 // 测试Ollama连接
 async function handleTestOllamaConnection(ollamaUrl) {
   try {

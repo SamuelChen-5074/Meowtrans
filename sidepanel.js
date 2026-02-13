@@ -95,7 +95,73 @@ function removeTypingIndicator(typingElement) {
   }
 }
 
-// 发送翻译请求
+// 创建流式输出的消息气泡（初始为空），返回用于追加内容的上下文对象
+function createStreamingMessage() {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'chat-message system';
+
+  const now = new Date();
+  const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'message-content';
+
+  const copyButton = document.createElement('button');
+  copyButton.className = 'copy-button';
+  copyButton.title = '复制消息';
+  copyButton.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+
+  const timeDiv = document.createElement('div');
+  timeDiv.className = 'message-time';
+  timeDiv.textContent = timeString;
+
+  messageDiv.appendChild(contentDiv);
+  messageDiv.appendChild(copyButton);
+  messageDiv.appendChild(timeDiv);
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // 累积的原始文本，用于复制功能
+  let rawText = '';
+
+  return {
+    element: messageDiv,
+    contentDiv: contentDiv,
+    appendChunk(chunk) {
+      rawText += chunk;
+      contentDiv.innerHTML = escapeHtmlWithLineBreaks(rawText);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    },
+    finalize() {
+      // 绑定复制按钮事件
+      const finalText = rawText;
+      copyButton.addEventListener('click', () => {
+        navigator.clipboard.writeText(finalText).then(() => {
+          copyButton.classList.add('copied');
+          const originalSvg = copyButton.innerHTML;
+          copyButton.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          setTimeout(() => {
+            copyButton.classList.remove('copied');
+            copyButton.innerHTML = originalSvg;
+          }, 2000);
+        }).catch(err => {
+          console.error('复制失败:', err);
+        });
+      });
+    }
+  };
+}
+
+// 发送翻译请求（流式输出）
 async function sendTranslation() {
   const text = chatInput.value.trim();
   if (!text) {
@@ -141,22 +207,55 @@ async function sendTranslation() {
   const typingIndicator = addTypingIndicator();
 
   try {
-    // 通过background script调用翻译API
-    const response = await chrome.runtime.sendMessage({
-      action: 'translateText',
+    // 通过端口连接进行流式翻译
+    const port = chrome.runtime.connect({ name: 'streaming-translate' });
+
+    // 创建流式消息气泡（先不显示，等第一个 chunk 到达后再替换打字指示器）
+    let streamingMsg = null;
+    let typingRemoved = false;
+
+    port.onMessage.addListener((msg) => {
+      if (msg.type === 'chunk') {
+        // 收到第一个 chunk 时，移除打字指示器并创建流式消息
+        if (!typingRemoved) {
+          removeTypingIndicator(typingIndicator);
+          typingRemoved = true;
+          streamingMsg = createStreamingMessage();
+        }
+        streamingMsg.appendChunk(msg.content);
+      } else if (msg.type === 'done') {
+        if (!typingRemoved) {
+          removeTypingIndicator(typingIndicator);
+          typingRemoved = true;
+        }
+        if (streamingMsg) {
+          streamingMsg.finalize();
+        }
+        showStatus('翻译完成', 'success');
+        port.disconnect();
+      } else if (msg.type === 'error') {
+        if (!typingRemoved) {
+          removeTypingIndicator(typingIndicator);
+          typingRemoved = true;
+        }
+        addMessage(`翻译失败: ${msg.error}`, 'system');
+        showStatus(`错误: ${msg.error}`, 'error');
+        port.disconnect();
+      }
+    });
+
+    port.onDisconnect.addListener(() => {
+      if (!typingRemoved) {
+        removeTypingIndicator(typingIndicator);
+      }
+    });
+
+    // 发送翻译请求
+    port.postMessage({
+      action: 'translateTextStream',
       text: text,
       settings: settings
     });
-
-    // 移除打字指示器
-    removeTypingIndicator(typingIndicator);
-
-    if (response.success) {
-      addMessage(response.translatedText, 'system');
-      showStatus('翻译完成', 'success');
-    } else {
-      throw new Error(response.error || '翻译失败');
-    }
   } catch (error) {
     // 移除打字指示器
     removeTypingIndicator(typingIndicator);
