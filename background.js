@@ -175,8 +175,8 @@ async function translateWithOpenRouter(text, settings) {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${settings.openrouterApiKey}`,
-    'HTTP-Referer': settings.openrouterSiteUrl || 'https://localhost',
+    'Authorization': `Bearer ${sanitizeHeaderValue(settings.openrouterApiKey)}`,
+    'HTTP-Referer': sanitizeHeaderValue(settings.openrouterSiteUrl || 'https://localhost'),
     'X-Title': encodedAppName
   };
 
@@ -213,7 +213,7 @@ async function translateWithOpenAI(text, settings) {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${settings.openaiApiKey}`
+    'Authorization': `Bearer ${sanitizeHeaderValue(settings.openaiApiKey)}`
   };
 
   const requestBody = {
@@ -228,7 +228,7 @@ async function translateWithOpenAI(text, settings) {
 
   // 如果设置了organization ID，添加到请求头
   if (settings.openaiOrganization) {
-    headers['OpenAI-Organization'] = settings.openaiOrganization;
+    headers['OpenAI-Organization'] = sanitizeHeaderValue(settings.openaiOrganization);
   }
 
   const response = await fetch(apiUrl, {
