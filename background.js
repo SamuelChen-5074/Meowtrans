@@ -648,6 +648,13 @@ async function handleTranslateText(text, settings) {
 // ===== 流式翻译支持 =====
 
 // Ollama 流式翻译
+// 清理 HTTP header 值，移除非 ISO-8859-1 字符
+function sanitizeHeaderValue(value) {
+  if (!value) return value;
+  // 移除非 ISO-8859-1 字符 (只保留 0-255 范围的字符)
+  return value.replace(/[^\x00-\xFF]/g, '').trim();
+}
+
 async function translateWithOllamaStream(text, settings, onChunk) {
   const prompt = `请将以下文本翻译成${settings.targetLang}，只返回翻译结果，不要添加任何解释：\n\n${text}`;
 
@@ -709,7 +716,7 @@ async function translateWithOpenRouterStream(text, settings, onChunk) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settings.openrouterApiKey}`,
+      'Authorization': `Bearer ${sanitizeHeaderValue(settings.openrouterApiKey)}`,
       'HTTP-Referer': settings.openrouterSiteUrl || 'https://localhost',
       'X-Title': encodedAppName
     },
@@ -737,11 +744,11 @@ async function translateWithOpenAIStream(text, settings, onChunk) {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${settings.openaiApiKey}`
+    'Authorization': `Bearer ${sanitizeHeaderValue(settings.openaiApiKey)}`
   };
 
   if (settings.openaiOrganization) {
-    headers['OpenAI-Organization'] = settings.openaiOrganization;
+    headers['OpenAI-Organization'] = sanitizeHeaderValue(settings.openaiOrganization);
   }
 
   const response = await fetch(apiUrl, {
